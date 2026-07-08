@@ -1,0 +1,42 @@
+{
+  "objective": "masked",
+  "latent_prediction": {
+    "cosine": 0.992715373635292,
+    "smooth_l1": 0.007517943042330444
+  },
+  "rollout": {
+    "horizon": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "cosine": [
+      0.9901644289493561,
+      0.9898938685655594,
+      0.9896190911531448,
+      0.9893210232257843
+    ],
+    "smooth_l1": [
+      0.010188259882852435,
+      0.01045834831893444,
+      0.010742794955149293,
+      0.011032975511625409
+    ],
+    "context_frames": 4
+  },
+  "loop_analysis": {
+    "per_loop_cosine": [
+      0.9673944264650345,
+      0.9928877502679825
+    ],
+    "exit_distribution": [
+      0.34375,
+      0.65625
+    ],
+    "expected_loops": 1.5017750561237335,
+    "max_loops": 2
+  },
+  "checkpoint": "checkpoints/ablations/loops_2/latest.pt",
+  "epochs": 20
+}

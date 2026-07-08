@@ -1,0 +1,8 @@
+# Core runtime dependencies. These are enough to generate synthetic drone
+# clips, train the model, evaluate it, and render the publication figures.
+torch>=2.2.0
+torchvision>=0.17.0
+numpy>=1.26.0
+pyyaml>=6.0
+tqdm>=4.66.0
+matplotlib>=3.8.0

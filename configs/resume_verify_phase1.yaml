@@ -1,0 +1,5 @@
+# Phase 1 of resume verify: train one epoch, then resume with resume_verify.yaml.
+_base_: resume_verify.yaml
+
+train:
+  epochs: 1

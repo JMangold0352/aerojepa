@@ -1,0 +1,24 @@
+# Fast Wilds fine-tune: 128px, 15fps, 60s cap per clip, 10 epochs.
+# Warm-start from the 4K real_finetune checkpoint (epoch 6) on the full 15-clip corpus.
+#
+#   python scripts/preprocess_real.py --input-dir data/flights \
+#       --output-dir data/flights_128 --target-fps 15 --max-seconds 60 --square --resize 128
+#   python scripts/train.py --config configs/aerojepa_finetune_fast.yaml --device mps
+_base_: aerojepa_real.yaml
+
+data:
+  data_dir: data/flights_128
+  batch_size: 16
+  num_workers: 0
+  window_stride: 8          # fewer windows than stride 4 — faster epochs, still plenty of data
+
+train:
+  init_checkpoint: checkpoints/real_finetune/latest.pt
+  lr: 0.00005             # gentler second stage
+  warmup_epochs: 1
+  epochs: 10
+  run_dir: runs/real_finetune_fast
+  checkpoint_dir: checkpoints/real_finetune_fast
+
+eval:
+  eval_every_epochs: 2

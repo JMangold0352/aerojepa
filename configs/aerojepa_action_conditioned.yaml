@@ -1,0 +1,12 @@
+# Action-conditioned world model: the same future-prediction setup, but the
+# predictor is told the drone's 6-DoF motion. This is the setting closest to
+# model-based control -- "given this action, predict the next latent state."
+_base_: aerojepa_world_model.yaml
+
+predictor:
+  action_conditioning: true
+  action_dim: 6
+
+train:
+  run_dir: runs/action_conditioned
+  checkpoint_dir: checkpoints/action_conditioned

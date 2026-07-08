@@ -1,0 +1,26 @@
+# Fine-tune a synthetic-pretrained AeroJEPA on real footage.
+#
+# This is the expected Phase 2 recipe: pretrain on the free synthetic benchmark,
+# then adapt to a small amount of real drone video. Because the encoder already
+# understands egomotion and looming obstacles, we use a lower learning rate, a
+# short warmup, and fewer epochs than training from scratch.
+#
+#   python scripts/train.py --config configs/aerojepa_finetune.yaml
+#
+# The starting weights are set below via train.init_checkpoint; override on the
+# command line with --init-checkpoint to fine-tune a different base model.
+_base_: aerojepa_real.yaml
+
+data:
+  num_workers: 0          # stable for 4K symlinked Wilds clips on Mac
+
+train:
+  init_checkpoint: checkpoints/world_model/latest.pt
+  lr: 0.0001              # gentler than the 5e-4 used for from-scratch training
+  warmup_epochs: 2
+  epochs: 30
+  run_dir: runs/real_finetune
+  checkpoint_dir: checkpoints/real_finetune
+
+eval:
+  eval_every_epochs: 5

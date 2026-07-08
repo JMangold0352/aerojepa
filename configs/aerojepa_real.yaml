@@ -1,0 +1,33 @@
+# Train on real UAV clips from data/flights/ (see data/README.md for layout).
+# Inherits the world-model recipe; swap synthetic data for on-disk video.
+#
+# Workflow:
+#   1. Capture:    python scripts/capture_tello.py --duration 30
+#   2. Preprocess: python scripts/preprocess_real.py --input-dir data/flights --square
+#   3. Train:      python scripts/train.py --config configs/aerojepa_real.yaml
+#
+# Fine-tune from synthetic weights (recommended -- far more sample efficient):
+#   python scripts/train.py --config configs/aerojepa_real.yaml \
+#       --init-checkpoint checkpoints/world_model/latest.pt
+# or use configs/aerojepa_finetune.yaml, which bakes that in.
+_base_: aerojepa_world_model.yaml
+
+data:
+  source: video
+  data_dir: data/flights
+  batch_size: 8            # smaller batches for larger real clips if needed
+  num_workers: 2           # decode video off the main thread
+  val_fraction: 0.1        # hold out whole videos (not windows) for validation
+  # Sampling: "uniform" = one clip per video; "sliding" = many windows per video
+  # (turns a few long flights into many training samples).
+  window_mode: sliding
+  window_stride: 4         # step between sliding windows; < num_frames overlaps
+  pad_short: true          # pad clips shorter than num_frames by repeating frames
+
+train:
+  epochs: 50
+  run_dir: runs/real_world_model
+  checkpoint_dir: checkpoints/real_world_model
+
+eval:
+  eval_every_epochs: 10

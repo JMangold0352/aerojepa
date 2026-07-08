@@ -1,0 +1,45 @@
+{
+  "source_dir": "/Users/johnmangold/Projects/aerojepa/data/flights_128",
+  "total_clips": 15,
+  "holdout_count": 3,
+  "eval_holdout": [
+    "wilds_012.mp4",
+    "wilds_013.mp4",
+    "wilds_014.mp4"
+  ],
+  "train_pool_size": 12,
+  "train_sizes": [
+    1,
+    5,
+    12
+  ],
+  "subsets": {
+    "1": [
+      "wilds_000.mp4"
+    ],
+    "5": [
+      "wilds_000.mp4",
+      "wilds_001.mp4",
+      "wilds_002.mp4",
+      "wilds_003.mp4",
+      "wilds_004.mp4"
+    ],
+    "12": [
+      "wilds_000.mp4",
+      "wilds_001.mp4",
+      "wilds_002.mp4",
+      "wilds_003.mp4",
+      "wilds_004.mp4",
+      "wilds_005.mp4",
+      "wilds_006.mp4",
+      "wilds_007.mp4",
+      "wilds_008.mp4",
+      "wilds_009.mp4",
+      "wilds_010.mp4",
+      "wilds_011.mp4"
+    ]
+  },
+  "created_at": "2026-07-04T18:21:43.345745+00:00",
+  "init_checkpoint": "checkpoints/world_model/latest.pt",
+  "epochs_per_run": 5
+}

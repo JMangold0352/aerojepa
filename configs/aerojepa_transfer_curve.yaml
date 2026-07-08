@@ -1,0 +1,19 @@
+# Transfer-curve fine-tune: subset of Wilds clips, warm-start from synthetic world_model.
+# Used by scripts/run_transfer_curve.py (do not run directly unless debugging).
+_base_: aerojepa_finetune_fast.yaml
+
+data:
+  data_dir: data/transfer_curve/train_n1   # overridden per run
+  val_fraction: 0.1
+  num_workers: 0
+
+train:
+  init_checkpoint: checkpoints/world_model/latest.pt
+  lr: 0.00005
+  warmup_epochs: 1
+  epochs: 5
+  run_dir: runs/transfer_curve/n1
+  checkpoint_dir: checkpoints/transfer_curve/n1
+
+eval:
+  eval_every_epochs: 999   # skip mid-run eval; script evaluates after each run

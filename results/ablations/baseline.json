@@ -1,0 +1,30 @@
+{
+  "objective": "masked",
+  "latent_prediction": {
+    "cosine": 0.993262991309166,
+    "smooth_l1": 0.006893067271448672
+  },
+  "rollout": {
+    "horizon": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "cosine": [
+      0.9907650351524353,
+      0.9904965162277222,
+      0.9902889430522919,
+      0.9900406002998352
+    ],
+    "smooth_l1": [
+      0.009500407380983233,
+      0.009786495007574558,
+      0.009982875548303127,
+      0.010255631525069475
+    ],
+    "context_frames": 4
+  },
+  "checkpoint": "checkpoints/ablations/baseline/latest.pt",
+  "epochs": 20
+}

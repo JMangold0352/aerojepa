@@ -1,0 +1,41 @@
+{
+  "checkpoint": "checkpoints/looped/latest.pt",
+  "objective": "masked",
+  "latent_prediction": {
+    "cosine": 0.9607634544372559,
+    "smooth_l1": 0.034928425680845976
+  },
+  "rollout": {
+    "horizon": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "cosine": [
+      0.9339951574802399,
+      0.9303819239139557,
+      0.9269721359014511,
+      0.9249126464128494
+    ],
+    "smooth_l1": [
+      0.05755588412284851,
+      0.06051531434059143,
+      0.06337516102939844,
+      0.06517734844237566
+    ],
+    "context_frames": 4
+  },
+  "loop_analysis": {
+    "per_loop_cosine": [
+      0.9396220296621323,
+      0.9588261991739273
+    ],
+    "exit_distribution": [
+      0.515625,
+      0.484375
+    ],
+    "expected_loops": 1.4998725950717926,
+    "max_loops": 2
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "meta": {
+    "mode": "quick",
+    "epochs": 20,
+    "device": "mps",
+    "config": "configs/aerojepa_synth_base.yaml",
+    "eval_only": false,
+    "timestamp": "2026-07-03T20:03:03.696171+00:00"
+  },
+  "variants": {
+    "baseline": {
+      "objective": "masked",
+      "latent_prediction": {
+        "cosine": 0.993262991309166,
+        "smooth_l1": 0.006893067271448672
+      },
+      "rollout": {
+        "horizon": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "cosine": [
+          0.9907650351524353,
+          0.9904965162277222,
+          0.9902889430522919,
+          0.9900406002998352
+        ],
+        "smooth_l1": [
+          0.009500407380983233,
+          0.009786495007574558,
+          0.009982875548303127,
+          0.010255631525069475
+        ],
+        "context_frames": 4
+      },
+      "checkpoint": "checkpoints/ablations/baseline/latest.pt",
+      "epochs": 20
+    },
+    "loops_2": {
+      "objective": "masked",
+      "latent_prediction": {
+        "cosine": 0.992715373635292,
+        "smooth_l1": 0.007517943042330444
+      },
+      "rollout": {
+        "horizon": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "cosine": [
+          0.9901644289493561,
+          0.9898938685655594,
+          0.9896190911531448,
+          0.9893210232257843
+        ],
+        "smooth_l1": [
+          0.010188259882852435,
+          0.01045834831893444,
+          0.010742794955149293,
+          0.011032975511625409
+        ],
+        "context_frames": 4
+      },
+      "loop_analysis": {
+        "per_loop_cosine": [
+          0.9673944264650345,
+          0.9928877502679825
+        ],
+        "exit_distribution": [
+          0.34375,
+          0.65625
+        ],
+        "expected_loops": 1.5017750561237335,
+        "max_loops": 2
+      },
+      "checkpoint": "checkpoints/ablations/loops_2/latest.pt",
+      "epochs": 20
+    },
+    "loops_3": {
+      "objective": "masked",
+      "latent_prediction": {
+        "cosine": 0.9931387603282928,
+        "smooth_l1": 0.007058709627017379
+      },
+      "rollout": {
+        "horizon": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "cosine": [
+          0.9905209988355637,
+          0.9903192669153214,
+          0.990101769566536,
+          0.9898259192705154
+        ],
+        "smooth_l1": [
+          0.009824816137552261,
+          0.01002509705722332,
+          0.010241889161989093,
+          0.010497688548639417
+        ],
+        "context_frames": 4
+      },
+      "loop_analysis": {
+        "per_loop_cosine": [
+          0.8797321915626526,
+          0.974700853228569,
+          0.993259459733963
+        ],
+        "exit_distribution": [
+          0.5234375,
+          0.2421875,
+          0.234375
+        ],
+        "expected_loops": 1.7520110309123993,
+        "max_loops": 3
+      },
+      "checkpoint": "checkpoints/ablations/loops_3/latest.pt",
+      "epochs": 20
+    },
+    "world_model": {
+      "objective": "future",
+      "latent_prediction": {
+        "cosine": 0.9943336844444275,
+        "smooth_l1": 0.00587961811106652
+      },
+      "rollout": {
+        "horizon": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "cosine": [
+          0.9923197776079178,
+          0.9924767166376114,
+          0.9922776073217392,
+          0.9922535270452499
+        ],
+        "smooth_l1": [
+          0.008153875707648695,
+          0.007962760631926358,
+          0.008180424571037292,
+          0.008165119914337993
+        ],
+        "context_frames": 4
+      },
+      "loop_analysis": {
+        "per_loop_cosine": [
+          0.8695907294750214,
+          0.9757783561944962,
+          0.9943336844444275
+        ],
+        "exit_distribution": [
+          0.59375,
+          0.2109375,
+          0.1953125
+        ],
+        "expected_loops": 1.7480638027191162,
+        "max_loops": 3
+      },
+      "checkpoint": "checkpoints/ablations/world_model/latest.pt",
+      "epochs": 20
+    }
+  }
+}

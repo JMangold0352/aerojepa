@@ -1,0 +1,41 @@
+# Tiny end-to-end smoke test: a few clips, a small model, one epoch. Runs in
+# well under a minute on CPU and exercises every code path (data -> model ->
+# loss -> checkpoint -> eval). Used by tests and `scripts/verify_install.py`.
+_base_: aerojepa_synth_base.yaml
+
+data:
+  img_size: 32
+  patch_size: 8            # -> 4x4 = 16 spatial patches per frame
+  num_frames: 4
+  batch_size: 4
+  num_train: 16
+  num_val: 8
+
+encoder:
+  embed_dim: 64
+  depth: 2
+  num_heads: 2
+
+predictor:
+  embed_dim: 32
+  depth: 2
+  num_heads: 2
+  looped: true
+  max_loops: 2
+  use_exit_gate: true
+
+masking:
+  num_target_blocks: 2
+  target_tokens: 12
+  context_tokens: 20
+  num_context_frames: 2
+
+train:
+  epochs: 1
+  warmup_epochs: 0
+  log_every: 1
+  run_dir: runs/smoke
+  checkpoint_dir: checkpoints/smoke
+
+eval:
+  eval_every_epochs: 1

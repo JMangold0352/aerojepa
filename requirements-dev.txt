@@ -1,0 +1,8 @@
+-r requirements.txt
+# Optional extras used by the demo, the t-SNE figures, real-video ingestion,
+# and the simulation hooks. None of these are required to train or evaluate
+# on the built-in synthetic data.
+pytest>=8.0.0
+gradio>=4.0.0
+scikit-learn>=1.4.0
+opencv-python>=4.9.0

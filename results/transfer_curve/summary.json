@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "generated_at": "2026-07-04 18:34 UTC",
+    "source_dir": "/Users/johnmangold/Projects/aerojepa/data/flights_128",
+    "eval_holdout": [
+      "wilds_012.mp4",
+      "wilds_013.mp4",
+      "wilds_014.mp4"
+    ],
+    "train_sizes": [
+      1,
+      5,
+      12
+    ],
+    "init_checkpoint": "checkpoints/world_model/latest.pt",
+    "epochs_per_run": 5,
+    "holdout_count": 3,
+    "note": "Train size 15 (or max) uses all 12 clips outside the 3-clip eval holdout."
+  },
+  "points": [
+    {
+      "train_clips": 0,
+      "label": "synthetic only",
+      "checkpoint": "checkpoints/world_model/latest.pt",
+      "real_latent_cosine": 0.9900753498077393,
+      "synthetic_latent_cosine": 0.9812789857387543,
+      "sim_to_real_gap": -0.008796364068984985,
+      "real_smooth_l1": 0.009295633994042873,
+      "rollout_cosine_h4": 0.9843347072601318,
+      "eval_data_dir": "data/transfer_curve/eval_holdout",
+      "train_clip_names": []
+    },
+    {
+      "train_clips": 1,
+      "label": "1 clips",
+      "checkpoint": "checkpoints/transfer_curve/n1/latest.pt",
+      "real_latent_cosine": 0.9933675527572632,
+      "synthetic_latent_cosine": 0.9965122118592262,
+      "sim_to_real_gap": 0.003144659101963043,
+      "real_smooth_l1": 0.006215400993824005,
+      "rollout_cosine_h4": 0.9877309799194336,
+      "eval_data_dir": "data/transfer_curve/eval_holdout",
+      "train_clip_names": [
+        "wilds_000.mp4"
+      ]
+    },
+    {
+      "train_clips": 5,
+      "label": "5 clips",
+      "checkpoint": "checkpoints/transfer_curve/n5/latest.pt",
+      "real_latent_cosine": 0.9941979646682739,
+      "synthetic_latent_cosine": 0.9961536452174187,
+      "sim_to_real_gap": 0.001955680549144745,
+      "real_smooth_l1": 0.005427643656730652,
+      "rollout_cosine_h4": 0.9879039525985718,
+      "eval_data_dir": "data/transfer_curve/eval_holdout",
+      "train_clip_names": [
+        "wilds_000.mp4",
+        "wilds_001.mp4",
+        "wilds_002.mp4",
+        "wilds_003.mp4",
+        "wilds_004.mp4"
+      ]
+    },
+    {
+      "train_clips": 12,
+      "label": "12 clips",
+      "checkpoint": "checkpoints/transfer_curve/n12/latest.pt",
+      "real_latent_cosine": 0.9941971302032471,
+      "synthetic_latent_cosine": 0.9963747411966324,
+      "sim_to_real_gap": 0.002177610993385315,
+      "real_smooth_l1": 0.0054077566601336,
+      "rollout_cosine_h4": 0.9870094060897827,
+      "eval_data_dir": "data/transfer_curve/eval_holdout",
+      "train_clip_names": [
+        "wilds_000.mp4",
+        "wilds_001.mp4",
+        "wilds_002.mp4",
+        "wilds_003.mp4",
+        "wilds_004.mp4",
+        "wilds_005.mp4",
+        "wilds_006.mp4",
+        "wilds_007.mp4",
+        "wilds_008.mp4",
+        "wilds_009.mp4",
+        "wilds_010.mp4",
+        "wilds_011.mp4"
+      ]
+    }
+  ]
+}

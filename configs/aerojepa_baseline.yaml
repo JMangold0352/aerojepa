@@ -1,0 +1,7 @@
+# Reference baseline: a single feed-forward predictor pass, masked objective.
+# This is the control we measure recurrence and world-model variants against.
+_base_: aerojepa_synth_base.yaml
+
+train:
+  run_dir: runs/baseline
+  checkpoint_dir: checkpoints/baseline

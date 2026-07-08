@@ -1,0 +1,11 @@
+# Fine-tune on self-captured Tello footage (after scripts/tello_workflow.sh preprocess).
+_base_: aerojepa_finetune_fast.yaml
+
+data:
+  data_dir: data/flights_tello_128
+
+train:
+  init_checkpoint: checkpoints/real_finetune_fast/latest.pt
+  epochs: 10
+  run_dir: runs/real_finetune_tello
+  checkpoint_dir: checkpoints/real_finetune_tello

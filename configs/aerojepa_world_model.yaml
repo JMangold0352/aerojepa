@@ -1,0 +1,20 @@
+# Forward world model: predict the latents of future frames from past frames
+# (the "future" objective) with the looped world-model predictor recipe
+# (RMSNorm + SwiGLU + sandwich norm). This is the variant aimed at predictive
+# planning and obstacle anticipation.
+_base_: aerojepa_synth_base.yaml
+
+objective: future
+
+masking:
+  num_context_frames: 4     # see 4 frames, predict the next 4
+
+predictor:
+  world_model: true
+  looped: true
+  max_loops: 3
+  use_exit_gate: true
+
+train:
+  run_dir: runs/world_model
+  checkpoint_dir: checkpoints/world_model

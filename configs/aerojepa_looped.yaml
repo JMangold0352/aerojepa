@@ -1,0 +1,16 @@
+# Looped predictor: same encoder, data, and schedule as the baseline. The only
+# change is that the predictor is re-applied for up to 2 shared-weight steps with
+# a learned exit gate (adaptive depth at zero extra parameters).
+_base_: aerojepa_synth_base.yaml
+
+predictor:
+  looped: true
+  max_loops: 2
+  use_exit_gate: true
+  norm: rms
+  sandwich_norm: true       # the parent project's strongest stabilizer for loops
+
+train:
+  run_dir: runs/looped
+  checkpoint_dir: checkpoints/looped
+  exit_entropy_beta: 0.01

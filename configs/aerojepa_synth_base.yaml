@@ -1,0 +1,67 @@
+# AeroJEPA base recipe: synthetic drone clips, masked latent-prediction objective,
+# non-looped predictor. Every other config inherits from this file and overrides
+# only the handful of keys that differ, so the comparisons stay honest.
+#
+# Defaults are sized to train comfortably on an Apple Silicon laptop (MPS).
+
+seed: 42
+objective: masked          # "masked" (representation learning) or "future" (world model)
+
+data:
+  source: synthetic        # "synthetic" (built-in) or "video" (folder of clips)
+  img_size: 64
+  patch_size: 8            # -> 8x8 = 64 spatial patches per frame
+  num_frames: 8
+  in_chans: 3
+  batch_size: 32
+  num_train: 1024
+  num_val: 128
+  num_workers: 0
+  num_obstacles: 5
+  max_speed: 0.06
+  normalize_actions: true
+
+encoder:
+  embed_dim: 192
+  depth: 6
+  num_heads: 3
+  mlp_ratio: 4.0
+  tokenizer: frame         # "frame" (per-frame tokens) or "tubelet" (3D conv)
+  tubelet_size: 2
+
+predictor:
+  embed_dim: 96            # narrow predictor keeps the parameter budget small
+  depth: 4
+  num_heads: 3
+  mlp_ratio: 4.0
+  world_model: false       # true -> RMSNorm + SwiGLU + sandwich-norm recipe
+  norm: layer
+  sandwich_norm: false
+  looped: false
+  max_loops: 2
+  use_exit_gate: false
+  action_conditioning: false
+  action_dim: 6
+
+masking:
+  num_target_blocks: 4
+  target_scale: [0.15, 0.25]
+  target_tokens: 96
+  context_tokens: 128
+  num_context_frames: 4    # only used by the "future" objective
+
+train:
+  epochs: 100
+  lr: 0.0005
+  weight_decay: 0.05
+  warmup_epochs: 10
+  ema_momentum_start: 0.996
+  ema_momentum_end: 1.0
+  grad_clip: 1.0
+  exit_entropy_beta: 0.01
+  log_every: 50
+  run_dir: runs/synth_base
+  checkpoint_dir: checkpoints/synth_base
+
+eval:
+  eval_every_epochs: 20

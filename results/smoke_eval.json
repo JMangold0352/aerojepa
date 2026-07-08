@@ -1,0 +1,35 @@
+{
+  "checkpoint": "checkpoints/smoke/latest.pt",
+  "objective": "masked",
+  "latent_prediction": {
+    "cosine": 0.3668602705001831,
+    "smooth_l1": 0.39146414399147034
+  },
+  "rollout": {
+    "horizon": [
+      1,
+      2
+    ],
+    "cosine": [
+      0.365042120218277,
+      0.35629428923130035
+    ],
+    "smooth_l1": [
+      0.39244943857192993,
+      0.3946177512407303
+    ],
+    "context_frames": 2
+  },
+  "loop_analysis": {
+    "per_loop_cosine": [
+      0.3557592183351517,
+      0.36846916377544403
+    ],
+    "exit_distribution": [
+      1.0,
+      0.0
+    ],
+    "expected_loops": 1.4269042015075684,
+    "max_loops": 2
+  }
+}
