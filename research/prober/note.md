@@ -128,7 +128,33 @@ The same structured prober is run with the looped predictor's latent rollout
 predictor's refined latents yield more accurate metric trajectories -- the
 project's headline research question.
 
-Results: see `results/prober_looped_ablation/`.
+Results (5 seeds, 64 clips, 15 epochs):
+
+| Arm | Metric | Regular | Looped | Looped better? |
+| --- | --- | --- | --- | --- |
+| structured | position RMSE (m) | 0.1382 | 0.1477 | no |
+| structured | attitude RMSE (deg) | 1.7368 | 1.7367 | yes (marginal) |
+| structured | velocity RMSE (m/s) | 0.5051 | 0.4606 | yes |
+| naive | position RMSE (m) | 0.0575 | 0.0529 | yes |
+| plain | attitude RMSE (deg) | 2.8635 | 2.8599 | yes (marginal) |
+
+### Headline finding
+
+**The looped predictor does NOT meaningfully improve metric-trajectory accuracy
+for the structured prober.** Position RMSE is slightly worse (0.138 -> 0.148);
+attitude RMSE is essentially identical (1.7368 -> 1.7367 deg, a 0.0001 deg
+difference far within noise); velocity RMSE improves modestly (0.505 -> 0.461).
+
+This is a **negative result** for the project's central hypothesis: the looped
+predictor's adaptive compute, which demonstrably refines latent predictions
+(verified in `test_looped_checkpoint_max_loops_1` -- max_loops=1 vs 3 produce
+different latents), does not translate into better metric groundability through
+the prober. The frozen encoder's latent already contains the metric information
+the prober can extract; the looped predictor's refinement helps latent
+prediction but not metric decoding.
+
+This is itself a publishable finding -- it bounds the value of adaptive compute
+in latent world models for the metric-decoding regime. See `results/regular_vs_looped/`.
 
 ## 6. Open questions for the PhD
 
