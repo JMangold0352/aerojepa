@@ -89,18 +89,35 @@ loss = mean( [pos_err, vel_err, wrap(att_err), ang_vel_err]^2 )
 ## 4. Ablation: structured prober vs plain MLP vs naive
 
 Three decoder arms on the **regular** (single-pass) predictor, 5 seeds, paired
-test clips:
+test clips (64 training clips, 15 epochs):
 
-| Arm | Params | Description |
-| --- | --- | --- |
-| naive | 2,316 | Linear projection from latent to metric state |
-| plain | 5,076 | MLP head: latent + actions -> direct metric state (no integrator) |
-| structured | 4,926 | MLP prober -> residual accel -> kinematic integrator (ours) |
+| Arm | Params | Position RMSE (m) | Attitude RMSE (deg) | Velocity RMSE (m/s) |
+| --- | --- | --- | --- | --- |
+| naive (linear) | 2,316 | 0.058 +/- 0.003 | 2.92 +/- 0.06 | 0.246 +/- 0.004 |
+| plain MLP | 5,076 | 0.147 +/- 0.014 | 2.86 +/- 0.06 | 0.282 +/- 0.011 |
+| structured (ours) | 4,926 | 0.138 +/- 0.022 | **1.74 +/- 0.002** | 0.505 +/- 0.106 |
 
 **Pre-registered success criterion:** structured position RMSE < plain position
-RMSE with non-overlapping std bands across seeds.
+RMSE with non-overlapping std bands across seeds. **Result: NOT met on position**
+(bands overlap: 0.138 vs 0.147). **Met on attitude** (1.74 vs 2.86, non-overlapping).
 
-Results: see `results/prober_regular_ablation/summary.json` and
+### Interpretation
+
+- **Attitude is the real win.** The structured prober reduces attitude RMSE by
+  39% vs plain MLP with extremely tight variance (std 0.002 deg). The kinematic
+  integrator's attitude structure (wrapped Euler integration + angular-velocity
+  dynamics) is clearly carrying signal the plain MLP cannot match.
+- **Position is a wash between structured and plain.** Both are far behind the
+  naive linear projection, which is surprisingly strong (0.058 m). This suggests
+  position is nearly linearly decodable from the frozen latent -- the integrator
+  structure does not help (and may slightly hurt) when the latent already
+  contains position information.
+- **Velocity RMSE is worse for structured.** The integrator's first-order
+  velocity hold (action = velocity target) may be too crude; the prober's
+  residual has to fight the nominal model. This is a candidate for PhD input
+  (Section 6, Q2).
+
+See `results/prober_regular_ablation/summary.json` and
 `figures/error_vs_horizon.png`.
 
 ## 5. Looped vs regular predictor
