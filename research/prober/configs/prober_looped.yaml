@@ -1,0 +1,36 @@
+# AeroProber training config (looped predictor arm).
+# Same as prober_synth.yaml but uses the looped world_model checkpoint with
+# max_loops=3, to compare against the regular baseline.
+checkpoint: checkpoints/world_model/latest.pt   # looped (max_loops=3) world model
+predictor_mode: looped
+max_loops: 3                                     # full looped recurrence
+
+# Data (same as regular)
+data:
+  num_train: 256
+  num_val: 32
+  num_frames: 8
+  img_size: 64
+  batch_size: 16
+  num_workers: 0
+  seed: 0
+
+# Prober / integrator (same as regular)
+prober:
+  hidden_dim: 24
+  num_layers: 2
+integrator:
+  dt: 0.0667
+  gravity: -9.81
+
+# Training (same as regular)
+train:
+  epochs: 30
+  lr: 0.001
+  weight_decay: 0.0
+  grad_clip: 1.0
+  context_frames: 4
+
+# Output
+output_dir: research/prober/results/prober_looped
+device: mps
