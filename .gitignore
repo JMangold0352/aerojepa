@@ -38,6 +38,9 @@ wandb/
 # Large model weights: keep out of git; use Git LFS or release assets if needed.
 #   git lfs track "*.pt"   # optional for a weights release branch
 
+# AeroProber ablation run logs (regenerated)
+research/prober/results/_*.log
+
 # Metrics JSON under results/ is small and tracked; ignore rendered previews.
 results/synthetic_preview/
 results/**/*.png
