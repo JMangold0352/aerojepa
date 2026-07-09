@@ -92,8 +92,8 @@ def evaluate_arm(
 
     all_pred: list[np.ndarray] = []
     all_gt: list[np.ndarray] = []
-    for clips, actions, states in loader:
-        rollout = extractor.extract(clips, actions, states, max_loops=max_loops)
+    for clips, _actions, states, controls in loader:
+        rollout = extractor.extract(clips, controls, states, max_loops=max_loops)
         _loss, pred_stack = _compute_pred(arm, model, loss_fn, rollout)
         all_pred.append(pred_stack.detach().cpu().numpy())
         all_gt.append(rollout.gt_states.detach().cpu().numpy())
@@ -107,9 +107,9 @@ def evaluate_arm(
 def _compute_pred(arm, model, loss_fn, rollout):
     """Dispatch to the right forward call for the arm type."""
     if arm == "structured":
-        return loss_fn(model, rollout.latents, rollout.actions, rollout.init_state, rollout.gt_states)
+        return loss_fn(model, rollout.latents, rollout.controls, rollout.init_state, rollout.gt_states)
     if arm == "plain":
-        return loss_fn(model, rollout.latents, rollout.actions, rollout.init_state, rollout.gt_states)
+        return loss_fn(model, rollout.latents, rollout.controls, rollout.init_state, rollout.gt_states)
     if arm == "naive":
-        return loss_fn(rollout.latents, rollout.actions, rollout.init_state, rollout.gt_states)
+        return loss_fn(rollout.latents, rollout.controls, rollout.init_state, rollout.gt_states)
     raise ValueError(arm)

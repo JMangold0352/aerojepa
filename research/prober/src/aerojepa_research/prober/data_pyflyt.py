@@ -95,11 +95,29 @@ def states_to_actions(states: np.ndarray) -> np.ndarray:
 
 @dataclass
 class PyFlytClip:
-    """One generated clip."""
+    """One generated clip.
+
+    Attributes
+    ----------
+    frames : (T, 3, H, W) float32 in [0, 1]
+    actions : (T, 6) float32
+        AeroJEPA-convention pose-delta actions (state-derived). Kept for
+        provenance and compatibility with the frozen world model, which was
+        trained on this convention. NOT used as the prober's action input --
+        see ``control_actions``.
+    metric_state : (T, 12) float32
+        Ground-truth [pos, vel, euler_att_deg, ang_vel].
+    control_actions : (T, 4) float32
+        Raw PyFlyt control commands (vp, vq, vr, T) -- angular-rate + thrust
+        setpoints that drove the simulation. These are genuinely exogenous
+        (sampled from a RNG), not derived from state, so they are the leak-free
+        action input for the prober's integrator.
+    """
 
     frames: torch.Tensor       # (T, 3, H, W) float32 in [0, 1]
-    actions: torch.Tensor      # (T, 6) float32
+    actions: torch.Tensor      # (T, 6) float32 -- AeroJEPA convention (state-derived)
     metric_state: torch.Tensor # (T, 12) float32
+    control_actions: torch.Tensor  # (T, 4) float32 -- raw (vp, vq, vr, T)
 
 
 def _normalize_actions(actions: np.ndarray, scale: float = 0.1) -> np.ndarray:
@@ -162,33 +180,44 @@ def generate_clip(
 
         frames: list[np.ndarray] = []
         states: list[np.ndarray] = []
+        controls: list[np.ndarray] = []
 
         # Record the initial state + frame (before any action).
+        # The control command for frame 0 is undefined (no preceding step);
+        # use zeros so control_actions has shape (T, 4) aligned with states.
         frames.append(_obs_to_frame(env.render(), img_size))
         states.append(_obs_to_metric_state(obs))
+        controls.append(np.zeros(4, dtype=np.float32))
 
         # Step the env with our pre-sampled control actions.
+        # raw_actions[t] drives the transition to frame t+1, so we record it
+        # as the control for frame t+1 (the command in effect during that frame).
         for t in range(num_frames - 1):
             obs, _rew, term, trunc, _info = env.step(raw_actions[t])
             frames.append(_obs_to_frame(env.render(), img_size))
             states.append(_obs_to_metric_state(obs))
+            controls.append(raw_actions[t].copy())
             if term or trunc:
                 # Reset and continue -- the clip will be padded if needed.
                 obs, _info = env.reset(seed=seed + t + 1)
                 frames[-1] = _obs_to_frame(env.render(), img_size)
                 states[-1] = _obs_to_metric_state(obs)
+                controls[-1] = np.zeros(4, dtype=np.float32)  # reset breaks continuity
     finally:
         env.close()
 
     # Truncate or pad to exactly num_frames.
     frames_np = np.stack(frames[:num_frames])
     states_np = np.stack(states[:num_frames])
+    controls_np = np.stack(controls[:num_frames])
     if states_np.shape[0] < num_frames:
         pad = num_frames - states_np.shape[0]
         last_frame = frames_np[-1:]
         last_state = states_np[-1:]
+        last_ctrl = controls_np[-1:]
         frames_np = np.concatenate([frames_np] + [last_frame] * pad, axis=0)
         states_np = np.concatenate([states_np] + [last_state] * pad, axis=0)
+        controls_np = np.concatenate([controls_np] + [last_ctrl] * pad, axis=0)
 
     actions_np = states_to_actions(states_np)
 
@@ -196,6 +225,7 @@ def generate_clip(
         frames=torch.from_numpy(frames_np),
         actions=torch.from_numpy(actions_np.astype(np.float32)),
         metric_state=torch.from_numpy(states_np.astype(np.float32)),
+        control_actions=torch.from_numpy(controls_np.astype(np.float32)),
     )
 
 
@@ -253,7 +283,7 @@ class PyFlytClipsDataset(Dataset):
     def __len__(self) -> int:
         return self.num_clips
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         clip = generate_clip(
             seed=self.seed * 100_003 + idx,
             num_frames=self.num_frames,
@@ -262,7 +292,7 @@ class PyFlytClipsDataset(Dataset):
             max_duration_seconds=self.max_duration_seconds,
             agent_hz=self.agent_hz,
         )
-        return clip.frames, clip.actions, clip.metric_state
+        return clip.frames, clip.actions, clip.metric_state, clip.control_actions
 
 
 def build_pyflyt_dataloaders(

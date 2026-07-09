@@ -22,6 +22,7 @@ prober:
 integrator:
   dt: 0.025
   gravity: -9.81
+  mass: 1.0
 
 # Training (same as regular)
 train:

@@ -21,6 +21,7 @@ prober:
 integrator:
   dt: 0.025                                      # 1/40 s -- matches PyFlyt agent_hz=40
   gravity: -9.81
+  mass: 1.0                                       # QuadX default mass [kg]
 
 # Training
 train:

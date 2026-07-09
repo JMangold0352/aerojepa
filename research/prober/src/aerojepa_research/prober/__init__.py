@@ -13,14 +13,17 @@ Design choices for v1 (see research/prober/README.md):
 
 from aerojepa_research.prober.integrator import (
     GRAVITY_Z,
+    ControlIntegrator,
     KinematicIntegrator,
     MetricState,
     wrap_degrees,
 )
-from aerojepa_research.prober.prober import PlainMLPHead, Prober, pool_latents
+from aerojepa_research.prober.prober import CONTROL_DIM, PlainMLPHead, Prober, pool_latents
 
 __all__ = [
+    "CONTROL_DIM",
     "GRAVITY_Z",
+    "ControlIntegrator",
     "KinematicIntegrator",
     "MetricState",
     "PlainMLPHead",

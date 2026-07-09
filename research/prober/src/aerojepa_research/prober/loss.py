@@ -14,7 +14,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from aerojepa_research.prober.integrator import KinematicIntegrator, MetricState
+from aerojepa_research.prober.integrator import ControlIntegrator, MetricState
 from aerojepa_research.prober.prober import PlainMLPHead, Prober
 
 
@@ -48,7 +48,7 @@ class StructuredProberLoss(nn.Module):
     velocity across all predicted horizons.
     """
 
-    def __init__(self, integrator: KinematicIntegrator) -> None:
+    def __init__(self, integrator: ControlIntegrator) -> None:
         super().__init__()
         self.integrator = integrator
 
@@ -56,7 +56,7 @@ class StructuredProberLoss(nn.Module):
         self,
         prober: Prober,
         latents: torch.Tensor,
-        actions: torch.Tensor,
+        controls: torch.Tensor,
         init_state: MetricState,
         gt_states: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -67,8 +67,8 @@ class StructuredProberLoss(nn.Module):
         loss : scalar tensor
         pred_stack : (B, T, 12) predicted metric trajectory (for logging)
         """
-        res_lin, res_ang = prober(latents, actions)
-        pred_traj = self.integrator.rollout(init_state, actions, res_lin, res_ang)
+        res_lin, res_ang = prober(latents, controls)
+        pred_traj = self.integrator.rollout(init_state, controls, res_lin, res_ang)
         pred_stack = pred_traj.stack()
         loss = metric_state_mse(pred_stack, gt_states)
         return loss, pred_stack
@@ -78,18 +78,18 @@ class PlainMLPLoss(nn.Module):
     """Loss for the plain MLP ablation arm: direct state prediction -> MSE.
 
     The plain head predicts each frame's metric state directly from latents +
-    actions, with no integrator. We still apply wrapped-angle MSE on attitude.
+    controls, with no integrator. We still apply wrapped-angle MSE on attitude.
     """
 
     def forward(
         self,
         head: PlainMLPHead,
         latents: torch.Tensor,
-        actions: torch.Tensor,
+        controls: torch.Tensor,
         init_state: MetricState,
         gt_states: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        pred_stack = head(latents, actions)
+        pred_stack = head(latents, controls)
         loss = metric_state_mse(pred_stack, gt_states)
         return loss, pred_stack
 
@@ -109,7 +109,7 @@ class NaiveLatentLoss(nn.Module):
     def forward(
         self,
         latents: torch.Tensor,
-        actions: torch.Tensor,
+        controls: torch.Tensor,
         init_state: MetricState,
         gt_states: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:

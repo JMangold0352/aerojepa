@@ -68,8 +68,8 @@ def run_one_seed(cfg: dict, arm: str, seed: int, device: torch.device):
     )
     for epoch in range(cfg["train"]["epochs"]):
         model.train() if hasattr(model, "train") else None
-        for clips, actions, states in train_loader:
-            rollout = extractor.extract(clips, actions, states, max_loops=max_loops)
+        for clips, _actions, states, controls in train_loader:
+            rollout = extractor.extract(clips, controls, states, max_loops=max_loops)
             from train_prober import compute_loss
             loss, _pred = compute_loss(arm_name, model, loss_fn, rollout)
             opt.zero_grad()

@@ -39,8 +39,8 @@ class FrozenRollout:
     ----------
     latents : (B, T_pred, encoder_dim)
         Pooled per-frame latent rollout for the predicted future frames.
-    actions : (B, T_pred, 6)
-        AeroJEPA-convention actions aligned to each predicted frame.
+    controls : (B, T_pred, 4)
+        Raw control commands (vp, vq, vr, T) aligned to each predicted frame.
     init_state : MetricState
         The metric state at the last context frame -- the integrator's start.
     gt_states : (B, T_pred, 12)
@@ -48,7 +48,7 @@ class FrozenRollout:
     """
 
     latents: torch.Tensor
-    actions: torch.Tensor
+    controls: torch.Tensor
     init_state: MetricState
     gt_states: torch.Tensor
 
@@ -111,7 +111,7 @@ class FrozenRolloutExtractor:
     def extract(
         self,
         clips: torch.Tensor,
-        actions: torch.Tensor,
+        controls: torch.Tensor,
         metric_states: torch.Tensor,
         max_loops: int | None = None,
     ) -> FrozenRollout:
@@ -121,8 +121,8 @@ class FrozenRolloutExtractor:
         ----------
         clips : (B, T, C, H, W)
             Full video clips (context + future). T must equal num_temporal.
-        actions : (B, T, 6)
-            AeroJEPA-convention actions for every frame.
+        controls : (B, T, 4)
+            Raw control commands (vp, vq, vr, T) for every frame.
         metric_states : (B, T, 12)
             Ground-truth metric states [pos, vel, euler_att_deg, ang_vel] per frame.
         max_loops : int | None
@@ -138,7 +138,7 @@ class FrozenRolloutExtractor:
         if T != self.num_temporal:
             raise ValueError(f"clip T={T} != encoder num_temporal={self.num_temporal}")
         clips = clips.to(self.device)
-        actions = actions.to(self.device)
+        controls = controls.to(self.device)
         metric_states = metric_states.to(self.device)
 
         ctx_indices = self._context_indices(B)
@@ -166,8 +166,8 @@ class FrozenRolloutExtractor:
 
         latents = torch.stack(per_frame_latents, dim=1)  # (B, T_pred, D)
 
-        # Actions + GT states aligned to the predicted frames.
-        pred_actions = actions[:, self.context_frames:self.num_temporal]
+        # Controls + GT states aligned to the predicted frames.
+        pred_controls = controls[:, self.context_frames:self.num_temporal]
         pred_gt_states = metric_states[:, self.context_frames:self.num_temporal]
         # The integrator starts from the LAST context frame's state.
         init_state = MetricState(
@@ -178,7 +178,7 @@ class FrozenRolloutExtractor:
         )
         return FrozenRollout(
             latents=latents,
-            actions=pred_actions,
+            controls=pred_controls,
             init_state=init_state,
             gt_states=pred_gt_states,
         )

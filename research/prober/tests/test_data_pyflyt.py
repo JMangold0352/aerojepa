@@ -15,6 +15,7 @@ pytestmark = pytest.mark.slow
 
 def test_generate_clip_shapes():
     from aerojepa_research.prober.data_pyflyt import generate_clip
+    import torch
 
     clip = generate_clip(seed=0, num_frames=8, img_size=64)
     assert clip.frames.shape == (8, 3, 64, 64)
@@ -30,6 +31,12 @@ def test_generate_clip_shapes():
     att = clip.metric_state[:, 6:9]
     assert (att >= -180.0).all() and (att < 180.0).all()
 
+    # Control actions: raw (vp, vq, vr, T) -- genuinely exogenous commands.
+    assert clip.control_actions.shape == (8, 4)
+    assert clip.control_actions.dtype.is_floating_point
+    # First frame's control is zero by convention (no preceding step).
+    assert torch.allclose(clip.control_actions[0], torch.zeros(4))
+
 
 def test_generate_clip_reproducible():
     from aerojepa_research.prober.data_pyflyt import generate_clip
@@ -39,6 +46,7 @@ def test_generate_clip_reproducible():
     assert c1.frames.equal(c2.frames)
     assert c1.actions.equal(c2.actions)
     assert c1.metric_state.equal(c2.metric_state)
+    assert c1.control_actions.equal(c2.control_actions)
 
 
 def test_states_to_actions_matches_telemetry_convention():

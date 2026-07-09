@@ -27,7 +27,7 @@ sys.path.insert(0, str(_ROOT / "research" / "prober" / "src"))
 sys.path.insert(0, str(_ROOT / "src"))
 
 from aerojepa_research.prober.data_pyflyt import build_pyflyt_dataloaders
-from aerojepa_research.prober.integrator import KinematicIntegrator
+from aerojepa_research.prober.integrator import ControlIntegrator
 from aerojepa_research.prober.loss import (
     NaiveLatentLoss,
     PlainMLPLoss,
@@ -46,8 +46,9 @@ def load_config(path: str | Path) -> dict:
 def build_model_and_loss(cfg: dict, device: torch.device):
     """Build the prober arm + loss for the configured arm type."""
     arm = cfg.get("arm", "structured")  # structured | plain | naive
-    integ = KinematicIntegrator(
+    integ = ControlIntegrator(
         dt=cfg["integrator"]["dt"], gravity=cfg["integrator"]["gravity"],
+        mass=cfg["integrator"].get("mass", 1.0),
     ).to(device)
 
     if arm == "structured":
@@ -76,11 +77,11 @@ def build_model_and_loss(cfg: dict, device: torch.device):
 def compute_loss(arm, model, loss_fn, rollout):
     """Dispatch to the right loss call signature for the arm type."""
     if arm == "structured":
-        return loss_fn(model, rollout.latents, rollout.actions, rollout.init_state, rollout.gt_states)
+        return loss_fn(model, rollout.latents, rollout.controls, rollout.init_state, rollout.gt_states)
     if arm == "plain":
-        return loss_fn(model, rollout.latents, rollout.actions, rollout.init_state, rollout.gt_states)
+        return loss_fn(model, rollout.latents, rollout.controls, rollout.init_state, rollout.gt_states)
     if arm == "naive":
-        return loss_fn(rollout.latents, rollout.actions, rollout.init_state, rollout.gt_states)
+        return loss_fn(rollout.latents, rollout.controls, rollout.init_state, rollout.gt_states)
     raise ValueError(arm)
 
 
@@ -89,8 +90,8 @@ def evaluate(extractor, model, loss_fn, loader, device, arm, max_loops=None):
     model.eval() if hasattr(model, "eval") else None
     total_loss = 0.0
     n = 0
-    for clips, actions, states in loader:
-        rollout = extractor.extract(clips, actions, states, max_loops=max_loops)
+    for clips, _actions, states, controls in loader:
+        rollout = extractor.extract(clips, controls, states, max_loops=max_loops)
         loss, _pred = compute_loss(arm, model, loss_fn, rollout)
         total_loss += float(loss.item()) * clips.shape[0]
         n += clips.shape[0]
@@ -152,8 +153,8 @@ def main():
         model.train() if hasattr(model, "train") else None
         epoch_loss = 0.0
         n = 0
-        for clips, actions, states in train_loader:
-            rollout = extractor.extract(clips, actions, states, max_loops=max_loops)
+        for clips, _actions, states, controls in train_loader:
+            rollout = extractor.extract(clips, controls, states, max_loops=max_loops)
             loss, _pred = compute_loss(arm, model, loss_fn, rollout)
             opt.zero_grad()
             loss.backward()

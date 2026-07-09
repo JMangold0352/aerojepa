@@ -213,3 +213,151 @@ class KinematicIntegrator(torch.nn.Module):
             euler_att=torch.stack(att_list, dim=1),
             ang_vel=torch.stack(av_list, dim=1),
         )
+
+
+def _euler_ypr_to_rotation(att_deg: torch.Tensor) -> torch.Tensor:
+    """Rotation matrix (body -> world) from (yaw, pitch, roll) in degrees.
+
+    Returns (..., 3, 3). Uses the standard ZYX (yaw-pitch-roll) convention.
+    """
+    y = torch.deg2rad(att_deg[..., 0])
+    p = torch.deg2rad(att_deg[..., 1])
+    r = torch.deg2rad(att_deg[..., 2])
+    cy, sy = torch.cos(y), torch.sin(y)
+    cp, sp = torch.cos(p), torch.sin(p)
+    cr, sr = torch.cos(r), torch.sin(r)
+    # R = Rz(yaw) @ Ry(pitch) @ Rx(roll)
+    R = torch.stack([
+        cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr,
+        sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr,
+        -sp,     cp * sr,                cp * cr,
+    ], dim=-1).reshape(*att_deg.shape[:-1], 3, 3)
+    return R
+
+
+class ControlIntegrator(torch.nn.Module):
+    """Leak-free integrator: raw control commands -> metric state.
+
+    Unlike :class:`KinematicIntegrator` (whose action contains state-derived
+    velocities/attitude-deltas), this integrator consumes genuinely exogenous
+    control commands ``(vp, vq, vr, T)`` -- angular-rate setpoints and a
+    collective-thrust setpoint. Nothing in the action reveals the ground-truth
+    state, so any metric accuracy the prober achieves must come from the latent.
+
+    Nominal physics model (what the control alone does):
+        - Thrust ``T`` acts along the body z-axis. World-frame linear
+          acceleration = ``R(att) @ [0, 0, T/mass] + [0, 0, gravity]``.
+        - Angular-rate setpoints ``(vp, vq, vr)`` (rad/s) drive the body-frame
+          angular velocity. We treat the setpoint as the target angular
+          velocity (a first-order hold), so the implied angular acceleration
+          is ``(setpoint - current_ang_vel) / dt``. Attitude is then advanced
+          by the new angular velocity.
+
+    The prober predicts residual linear and angular accelerations added to
+    these nominal accelerations before the Euler step -- it learns what the
+    simple nominal model gets wrong (drag, motor dynamics, coupling).
+
+    Parameters
+    ----------
+    dt : float
+        Per-frame time step [s].
+    gravity : float
+        World-z gravitational acceleration [m/s^2].
+    mass : float
+        Quadrotor mass [kg]. PyFlyt's QuadX default is ~1.0 kg.
+    """
+
+    def __init__(
+        self, dt: float = 0.025, gravity: float = GRAVITY_Z, mass: float = 1.0
+    ) -> None:
+        super().__init__()
+        self.dt = dt
+        self.gravity = gravity
+        self.mass = mass
+
+    def nominal_accel(
+        self, control: torch.Tensor, state: MetricState
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Nominal linear and angular accelerations from control commands.
+
+        Parameters
+        ----------
+        control : (B, 4)  [vp, vq, vr, T]  (rad/s, rad/s, rad/s, thrust proxy)
+        state : current MetricState (attitude in degrees, ang_vel in deg/s)
+
+        Returns
+        -------
+        a_lin_nom : (B, 3)  world-frame linear acceleration [m/s^2]
+        a_ang_nom : (B, 3)  body-frame angular acceleration [deg/s^2]
+        """
+        dt = self.dt
+        T = control[..., 3]  # thrust setpoint
+        # Body-frame thrust direction is +z; rotate to world frame.
+        R = _euler_ypr_to_rotation(state.euler_att)  # (B, 3, 3)
+        body_thrust = torch.zeros(*T.shape, 3, device=T.device, dtype=T.dtype)
+        body_thrust[..., 2] = T / self.mass  # acceleration from thrust
+        a_lin_nom = torch.einsum("...ij,...j->...i", R, body_thrust)  # (B, 3)
+        # Add gravity (world z).
+        a_lin_nom = a_lin_nom.clone()
+        a_lin_nom[..., 2] = a_lin_nom[..., 2] + self.gravity
+
+        # Angular-rate setpoint -> angular acceleration (first-order hold).
+        # control[:3] are in rad/s; state.ang_vel is in deg/s. Convert.
+        setpoint_deg = torch.rad2deg(control[..., :3])  # (B, 3) deg/s
+        a_ang_nom = (setpoint_deg - state.ang_vel) / dt  # deg/s^2
+        return a_lin_nom, a_ang_nom
+
+    def step(
+        self,
+        state: MetricState,
+        control: torch.Tensor,
+        res_lin: torch.Tensor,
+        res_ang: torch.Tensor,
+    ) -> MetricState:
+        """Advance the state by one frame given a control command + residuals."""
+        dt = self.dt
+        a_lin_nom, a_ang_nom = self.nominal_accel(control, state)
+        a_lin = a_lin_nom + res_lin
+        a_ang = a_ang_nom + res_ang
+
+        new_vel = state.vel + a_lin * dt
+        new_pos = state.pos + new_vel * dt
+        new_ang_vel = state.ang_vel + a_ang * dt
+        new_att = wrap_degrees(state.euler_att + new_ang_vel * dt)
+        return MetricState(pos=new_pos, vel=new_vel, euler_att=new_att, ang_vel=new_ang_vel)
+
+    def rollout(
+        self,
+        init_state: MetricState,
+        controls: torch.Tensor,
+        res_lin: torch.Tensor,
+        res_ang: torch.Tensor,
+    ) -> MetricState:
+        """Roll the state forward over a sequence of controls + residuals.
+
+        Parameters
+        ----------
+        init_state : MetricState
+        controls : (B, T, 4)  raw [vp, vq, vr, T]
+        res_lin : (B, T, 3)
+        res_ang : (B, T, 3)
+        """
+        T = controls.shape[1]
+        if res_lin.shape[1] != T or res_ang.shape[1] != T:
+            raise ValueError(
+                f"residual horizon {res_lin.shape[1]}/{res_ang.shape[1]} != control horizon {T}"
+            )
+        state = init_state.clone()
+        pos_list, vel_list, att_list, av_list = [], [], [], []
+        for t in range(T):
+            state = self.step(state, controls[:, t], res_lin[:, t], res_ang[:, t])
+            pos_list.append(state.pos)
+            vel_list.append(state.vel)
+            att_list.append(state.euler_att)
+            av_list.append(state.ang_vel)
+        return MetricState(
+            pos=torch.stack(pos_list, dim=1),
+            vel=torch.stack(vel_list, dim=1),
+            euler_att=torch.stack(att_list, dim=1),
+            ang_vel=torch.stack(av_list, dim=1),
+        )

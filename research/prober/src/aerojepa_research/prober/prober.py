@@ -1,14 +1,18 @@
 """Prober modules: structured physics prober + plain MLP ablation head.
 
 The structured prober (``Prober``) maps a latent rollout from the frozen
-predictor (+ actions) to residual accelerations consumed by the kinematic
-integrator. The plain MLP head (``PlainMLPHead``) maps the same inputs directly
-to metric state -- the no-physics ablation arm.
+predictor (+ control commands) to residual accelerations consumed by the
+control integrator. The plain MLP head (``PlainMLPHead``) maps the same inputs
+directly to metric state -- the no-physics ablation arm.
 
 Input latent convention: the frozen AeroJEPA predictor outputs target latents of
 shape (B, n_tgt, encoder_dim=192). For a future-frame world model n_tgt equals
 num_spatial (64) per predicted frame. We pool each frame's spatial tokens with a
 learned projection to get one (B, T, latent_dim) sequence before the prober MLP.
+
+Action convention: the prober consumes raw control commands (vp, vq, vr, T)
+of dimension 4 -- genuinely exogenous, not state-derived -- so the latent is
+the only source of state information. This is leak-free.
 """
 
 from __future__ import annotations
@@ -18,24 +22,24 @@ import torch.nn as nn
 
 # Latent dimension of the frozen encoder (confirmed from checkpoints).
 ENCODER_DIM = 192
-# AeroJEPA 6-DoF action dimension.
-ACTION_DIM = 6
+# Raw control-command dimension (vp, vq, vr, T) -- leak-free action input.
+CONTROL_DIM = 4
 
 
 class Prober(nn.Module):
-    """Structured physics prober: latent rollout + actions -> residual accelerations.
+    """Structured physics prober: latent rollout + controls -> residual accelerations.
 
     Outputs residual linear acceleration (3) and residual angular acceleration (3),
-    which are fed to :class:`KinematicIntegrator`. Keeping the output as a residual
-    (not a full acceleration) lets the nominal physics model carry the bulk of the
-    dynamics and lets the prober focus on what the nominal model gets wrong.
+    which are fed to :class:`ControlIntegrator`. Keeping the output as a residual
+    (not a full acceleration) lets the nominal thrust/torque model carry the bulk
+    of the dynamics and lets the prober focus on what the nominal model gets wrong.
 
     Parameters
     ----------
     latent_dim : int
         Per-frame latent dimension after pooling (default 192).
-    action_dim : int
-        Action dimension (default 6).
+    control_dim : int
+        Control-command dimension (default 4 for vp,vq,vr,T).
     hidden_dim : int
         Hidden width of the MLP.
     num_layers : int
@@ -45,14 +49,14 @@ class Prober(nn.Module):
     def __init__(
         self,
         latent_dim: int = ENCODER_DIM,
-        action_dim: int = ACTION_DIM,
+        control_dim: int = CONTROL_DIM,
         hidden_dim: int = 24,
         num_layers: int = 2,
     ) -> None:
         super().__init__()
         self.latent_dim = latent_dim
-        self.action_dim = action_dim
-        in_dim = latent_dim + action_dim
+        self.control_dim = control_dim
+        in_dim = latent_dim + control_dim
         out_dim = 6  # 3 residual linear accel + 3 residual angular accel
 
         layers: list[nn.Module] = []
@@ -74,20 +78,20 @@ class Prober(nn.Module):
         with torch.no_grad():
             last.weight.mul_(0.01)
 
-    def forward(self, latent: torch.Tensor, actions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, latent: torch.Tensor, controls: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Predict residual accelerations for each frame.
 
         Parameters
         ----------
         latent : (B, T, latent_dim)  per-frame pooled latent rollout
-        actions : (B, T, action_dim)
+        controls : (B, T, control_dim)
 
         Returns
         -------
         res_lin : (B, T, 3)
         res_ang : (B, T, 3)
         """
-        x = torch.cat([latent, actions], dim=-1)
+        x = torch.cat([latent, controls], dim=-1)
         out = self.mlp(x)
         res_lin, res_ang = torch.split(out, [3, 3], dim=-1)
         return res_lin, res_ang
@@ -97,10 +101,10 @@ class Prober(nn.Module):
 
 
 class PlainMLPHead(nn.Module):
-    """Ablation arm: latent rollout + actions -> direct metric state (no integrator).
+    """Ablation arm: latent rollout + controls -> direct metric state (no integrator).
 
     This is the "plain MLP head" the charter ablates against. It predicts the
-    full 12-D metric state per frame directly from latents + actions, with no
+    full 12-D metric state per frame directly from latents + controls, with no
     kinematic structure and no integrator. Same input/hidden budget as the
     structured prober for a fair comparison.
     """
@@ -108,13 +112,13 @@ class PlainMLPHead(nn.Module):
     def __init__(
         self,
         latent_dim: int = ENCODER_DIM,
-        action_dim: int = ACTION_DIM,
+        control_dim: int = CONTROL_DIM,
         hidden_dim: int = 24,
         num_layers: int = 2,
         state_dim: int = 12,
     ) -> None:
         super().__init__()
-        in_dim = latent_dim + action_dim
+        in_dim = latent_dim + control_dim
         layers: list[nn.Module] = []
         d = in_dim
         for _ in range(num_layers - 1):
@@ -128,9 +132,9 @@ class PlainMLPHead(nn.Module):
                 nn.init.xavier_uniform_(m.weight)
                 nn.init.zeros_(m.bias)
 
-    def forward(self, latent: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
+    def forward(self, latent: torch.Tensor, controls: torch.Tensor) -> torch.Tensor:
         """Predict (B, T, state_dim) metric states directly."""
-        x = torch.cat([latent, actions], dim=-1)
+        x = torch.cat([latent, controls], dim=-1)
         return self.mlp(x)
 
     def num_params(self) -> int:
