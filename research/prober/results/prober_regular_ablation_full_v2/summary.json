@@ -1,0 +1,36 @@
+{
+  "naive": {
+    "position_rmse_mean": 0.0441762626171112,
+    "position_rmse_std": 0.0009638725121077388,
+    "attitude_rmse_deg_mean": 2.8989747047424315,
+    "attitude_rmse_deg_std": 0.03291328442069879,
+    "velocity_rmse_mean": 0.2342197686433792,
+    "velocity_rmse_std": 0.0016881688042583627,
+    "n_seeds": 5
+  },
+  "plain": {
+    "position_rmse_mean": 0.12428937256336212,
+    "position_rmse_std": 0.030024315550451115,
+    "attitude_rmse_deg_mean": 2.5466487407684326,
+    "attitude_rmse_deg_std": 0.025128542218993133,
+    "velocity_rmse_mean": 0.2587719976902008,
+    "velocity_rmse_std": 0.03073380559468542,
+    "n_seeds": 5
+  },
+  "structured": {
+    "position_rmse_mean": 0.006937375105917454,
+    "position_rmse_std": 2.02547645487686e-05,
+    "attitude_rmse_deg_mean": 1.8169841289520263,
+    "attitude_rmse_deg_std": 0.00033877648033063285,
+    "velocity_rmse_mean": 0.001468169374857098,
+    "velocity_rmse_std": 0.0006011595596015072,
+    "n_seeds": 5
+  },
+  "success_criterion": {
+    "description": "structured position_rmse < plain position_rmse with non-overlapping std bands",
+    "structured_mean_std": "0.0069 +/- 0.0000",
+    "plain_mean_std": "0.1243 +/- 0.0300",
+    "bands_overlap": false,
+    "met": true
+  }
+}
