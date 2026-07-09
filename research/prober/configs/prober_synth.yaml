@@ -19,7 +19,7 @@ prober:
   hidden_dim: 24
   num_layers: 2
 integrator:
-  dt: 0.0667                                    # 1/15 s (Parrot Wilds framerate)
+  dt: 0.025                                      # 1/40 s -- matches PyFlyt agent_hz=40
   gravity: -9.81
 
 # Training

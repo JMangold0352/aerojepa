@@ -20,7 +20,7 @@ prober:
   hidden_dim: 24
   num_layers: 2
 integrator:
-  dt: 0.0667
+  dt: 0.025
   gravity: -9.81
 
 # Training (same as regular)

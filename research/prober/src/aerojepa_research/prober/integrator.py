@@ -109,9 +109,12 @@ class KinematicIntegrator(torch.nn.Module):
     def nominal_accel(self, action: torch.Tensor, state: MetricState) -> tuple[torch.Tensor, torch.Tensor]:
         """Nominal linear and angular accelerations implied by the action.
 
-        The action's body-velocity channels are a first-order hold on velocity,
-        so the implied linear acceleration is ``(action_vel - current_vel) / dt``.
-        The attitude-delta channels likewise imply an angular acceleration.
+        The action's body-velocity channels (``dx, dy, d_altitude``) are a
+        first-order hold on velocity -- i.e. they carry the per-frame velocity
+        target (matching ``telemetry.ACTION_COLUMNS`` where ``dx=vgx`` etc.).
+        The implied linear acceleration is therefore
+        ``(action_vel - current_vel) / dt``. The attitude-delta channels
+        likewise imply an angular acceleration via the same first-order hold.
 
         Parameters
         ----------

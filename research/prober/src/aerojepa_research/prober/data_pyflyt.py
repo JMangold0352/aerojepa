@@ -59,6 +59,13 @@ def _euler_rad_to_deg_yaw_pitch_roll(ang_pos_rpy: np.ndarray) -> np.ndarray:
 def states_to_actions(states: np.ndarray) -> np.ndarray:
     """Derive AeroJEPA 6-DoF pose-delta actions from consecutive metric states.
 
+    Matches the convention in ``src/aerojepa/data/telemetry.py``:
+    - Linear channels (dx, dy, d_altitude) = the per-frame **body velocity**
+      (vgx/vgy/vgz), used directly -- NOT a velocity delta. The real AeroJEPA
+      pipeline uses the reported body velocities as the linear action channels.
+    - Angular channels (d_yaw, d_pitch, d_roll) = wrapped frame-to-frame
+      attitude deltas (degrees).
+
     Parameters
     ----------
     states : (T, 12)  [pos, vel, euler_att_deg(yaw,pitch,roll), ang_vel] per frame
@@ -66,19 +73,19 @@ def states_to_actions(states: np.ndarray) -> np.ndarray:
     Returns
     -------
     actions : (T, 6)  (dx, dy, d_altitude, d_yaw, d_pitch, d_roll)
-              The first row is zero (no previous frame), matching
-              ``telemetry.derive_actions_from_raw``.
+              The first row's angular channels are zero (no previous frame);
+              the linear channels carry the first frame's velocity (matching
+              ``telemetry.derive_actions_from_raw``, which copies vgx/vgy/vgz
+              for every row including the first).
     """
     T = states.shape[0]
     actions = np.zeros((T, ACTION_DIM), dtype=np.float32)
     if T < 2:
         return actions
-    vel = states[:, 3:6]           # body velocity proxy (world-frame here)
+    vel = states[:, 3:6]           # velocity (PyFlyt: world-frame; treated as body proxy)
     att = states[:, 6:9]           # yaw, pitch, roll (deg)
-    # Linear channels: frame-to-frame velocity deltas (first-order: the velocity
-    # that produced this frame's motion). Use the velocity itself as the delta
-    # proxy, matching how telemetry uses vgx/vgy/vgz directly.
-    actions[1:, 0:3] = np.diff(vel, axis=0)
+    # Linear channels: the velocity itself (matches telemetry: actions[:,0]=vgx, etc.).
+    actions[:, 0:3] = vel
     # Angular channels: wrapped frame-to-frame attitude deltas.
     actions[1:, 3] = _wrap_degrees(np.diff(att[:, 0]))  # d_yaw
     actions[1:, 4] = np.diff(att[:, 1])                  # d_pitch
