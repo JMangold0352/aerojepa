@@ -1,0 +1,103 @@
+{
+  "table": {
+    "naive": {
+      "regular": {
+        "position_rmse": [
+          0.041460227221250534,
+          0.003136323779595166
+        ],
+        "attitude_rmse_deg": [
+          2.883804368972778,
+          0.02723092949163253
+        ],
+        "velocity_rmse": [
+          0.23477185070514678,
+          0.004474149904669262
+        ]
+      },
+      "looped": {
+        "position_rmse": [
+          0.03076667934656143,
+          0.008444864758284706
+        ],
+        "attitude_rmse_deg": [
+          2.8823671340942383,
+          0.022497420654802033
+        ],
+        "velocity_rmse": [
+          0.19760130047798158,
+          0.010675021389059949
+        ]
+      }
+    },
+    "plain": {
+      "regular": {
+        "position_rmse": [
+          0.1313125729560852,
+          0.030683777807130892
+        ],
+        "attitude_rmse_deg": [
+          2.6365506649017334,
+          0.015295876567525143
+        ],
+        "velocity_rmse": [
+          0.27794143855571746,
+          0.025135961713495098
+        ]
+      },
+      "looped": {
+        "position_rmse": [
+          0.14357981383800505,
+          0.03516004991273344
+        ],
+        "attitude_rmse_deg": [
+          2.6272748470306397,
+          0.012270991498906328
+        ],
+        "velocity_rmse": [
+          0.23871272504329683,
+          0.017113516492680357
+        ]
+      }
+    },
+    "structured": {
+      "regular": {
+        "position_rmse": [
+          0.21148827075958251,
+          0.0010721373175971187
+        ],
+        "attitude_rmse_deg": [
+          1.7505172491073608,
+          0.0025828441484284734
+        ],
+        "velocity_rmse": [
+          0.23676558434963227,
+          0.0016371997759766848
+        ]
+      },
+      "looped": {
+        "position_rmse": [
+          0.21121490597724915,
+          0.001377503442308221
+        ],
+        "attitude_rmse_deg": [
+          1.7519431591033936,
+          0.0032078785971334234
+        ],
+        "velocity_rmse": [
+          0.23058623671531678,
+          0.001753388252608159
+        ]
+      }
+    }
+  },
+  "headline": {
+    "question": "Does the looped predictor's refined latent rollout improve metric-trajectory accuracy (structured prober)?",
+    "structured_position_rmse_regular": 0.21148827075958251,
+    "structured_position_rmse_looped": 0.21121490597724915,
+    "structured_position_looped_better": true,
+    "structured_attitude_rmse_deg_regular": 1.7505172491073608,
+    "structured_attitude_rmse_deg_looped": 1.7519431591033936,
+    "structured_attitude_looped_better": false
+  }
+}
