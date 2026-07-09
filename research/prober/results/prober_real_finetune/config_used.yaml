@@ -1,0 +1,27 @@
+arm: structured
+checkpoint: checkpoints/real_finetune_fast/latest.pt
+data:
+  batch_size: 16
+  img_size: 64
+  num_frames: 8
+  num_train: 256
+  num_val: 32
+  num_workers: 0
+  seed: 0
+device: mps
+integrator:
+  dt: 0.025
+  gravity: -9.81
+  mass: 1.0
+max_loops: 1
+output_dir: research/prober/results/prober_real_finetune
+predictor_mode: regular
+prober:
+  hidden_dim: 24
+  num_layers: 2
+train:
+  context_frames: 4
+  epochs: 30
+  grad_clip: 1.0
+  lr: 0.001
+  weight_decay: 0.0

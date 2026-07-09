@@ -1,0 +1,32 @@
+# Train leak-free structured prober with frozen real_finetune_fast checkpoint.
+# Used for Wilds real-data evaluation (latents match the finetuned encoder).
+checkpoint: checkpoints/real_finetune_fast/latest.pt
+predictor_mode: regular
+max_loops: 1
+
+data:
+  num_train: 256
+  num_val: 32
+  num_frames: 8
+  img_size: 64
+  batch_size: 16
+  num_workers: 0
+  seed: 0
+
+prober:
+  hidden_dim: 24
+  num_layers: 2
+integrator:
+  dt: 0.025
+  gravity: -9.81
+  mass: 1.0
+
+train:
+  epochs: 30
+  lr: 0.001
+  weight_decay: 0.0
+  grad_clip: 1.0
+  context_frames: 4
+
+output_dir: research/prober/results/prober_real_finetune
+device: mps

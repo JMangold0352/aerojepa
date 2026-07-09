@@ -5,8 +5,8 @@
 AeroProber is a lightweight prober head that converts latent rollouts from a
 **frozen** AeroJEPA world model into physically meaningful metric states
 (position, velocity, Euler attitude, angular velocity) through a differentiable
-kinematic integrator. The encoder and (looped) predictor stay frozen; only the
-prober (~5k parameters) is trained.
+**control integrator**. The encoder and predictor stay frozen; only the prober
+(~5k parameters) is trained.
 
 - **Parent model:** [AeroJEPA-WorldModel](aerojepa_world_model.md) (frozen).
 - **Code:** [`research/prober/`](../research/prober/)
@@ -17,46 +17,57 @@ prober (~5k parameters) is trained.
 | Component | Setting |
 | --- | --- |
 | Frozen encoder | ViT, 192-d, 6 blocks (from parent checkpoint) |
-| Frozen predictor | regular (single-pass) or looped (max_loops=3, exit gate) |
-| Prober (psi) | MLP, ~5k params (hidden=24, 2 layers) |
-| Integrator | first-order Euler, Euler-angle attitude, wrapped to (-180, 180] |
-| Prober output | residual accelerations (3 linear + 3 angular) |
+| Frozen predictor | regular (single-pass) or looped (`max_loops=3`) |
+| Prober (ψ) | MLP, ~5k params (`hidden=24`, 2 layers) |
+| Prober input | latent (192-d) + **raw control** `(vp, vq, vr, T)` — 4-d, leak-free |
+| Integrator | `ControlIntegrator`: thrust/torque nominal model + residual accelerations |
+| Prober output | residual linear + angular acceleration (3 + 3) |
 | Loss | multi-horizon MSE with wrapped-angle attitude error |
 
 ## Intended use
 
-- **Metric rollout:** decode frozen latents into position/velocity/attitude
-  trajectories for planning and visualization.
-- **Ablation research:** compare structured physics prober vs plain MLP head
-  vs naive linear projection (see `research/prober/scripts/run_ablations.py`).
-- **Looped-vs-regular comparison:** test whether the looped predictor's refined
-  latents yield more accurate metric trajectories.
+- **Metric rollout:** decode frozen latents into position/velocity/attitude trajectories.
+- **Ablation research:** structured physics prober vs plain MLP vs naive linear probe.
+- **Looped-vs-regular:** test whether looped predictor latents improve metric decoding.
 
 ## Training
 
-- **Data:** PyFlyt quadrotor simulator (full 6-DoF metric state ground truth).
-- **Frozen:** encoder + predictor + EMA teacher (zero trainable params).
+- **Data:** PyFlyt quadrotor simulator (full 6-DoF metric state + raw control commands).
+- **Frozen:** encoder + predictor (zero trainable params).
 - **Trained:** prober head only.
-- **Recipe:** AdamW, lr=1e-3, 30 epochs, grad clip 1.0. See
-  [`research/prober/configs/prober_synth.yaml`](../research/prober/configs/prober_synth.yaml).
+- **Recipe:** AdamW, lr=1e-3, 30 epochs, `dt=0.025` (40 Hz). See `configs/prober_synth.yaml`.
 
-## Evaluation
+## Evaluation (leak-free v3, full scale)
 
-- **Synthetic (PyFlyt):** position RMSE, attitude RMSE (deg), velocity RMSE,
-  per-horizon error curves. See `research/prober/results/`.
-- **Real (Parrot Wilds):** velocity/attitude/altitude RMSE (quantitative);
-  position x/y qualitative only (no GPS in Wilds logs). See
-  `research/prober/scripts/eval_real.py`.
+**Synthetic (PyFlyt), regular predictor, 5 seeds:**
+
+| arm | position RMSE | attitude RMSE | velocity RMSE |
+| --- | --- | --- | --- |
+| structured | **0.006 ± 0.000 m** | **2.28 ± 0.00 deg** | **0.075 m/s** |
+| plain MLP | 0.152 ± 0.022 m | 2.84 ± 0.03 deg | 0.252 m/s |
+
+Pre-registered success criterion (structured position < plain, non-overlapping): **met**.
+
+**Looped vs regular (structured):** tie — negative result on adaptive compute helping metric groundability.
+
+**Real (Parrot Wilds), 15 clips** (`results/real_data_v3/`):
+
+| Metric | Wilds | PyFlyt sim (v3) |
+| --- | --- | --- |
+| velocity RMSE | 1.29 ± 0.62 m/s | 0.075 m/s |
+| attitude RMSE | 33.6 ± 29.4 deg | 2.28 deg |
+| altitude RMSE | 5.69 ± 6.97 m | — |
+
+Eval uses zero controls (no motor telemetry). Large sim-to-real gap; primary research frontier.
 
 ## Limitations
 
-- Euler angles (not SO(3)/quaternion) -- gimbal lock possible for aggressive
-  maneuvers. Flagged for v2.
-- Real-data position is dead-reckoned (no GPS). Flagged as future work.
-- Trained on sim (PyFlyt), evaluated on real (Wilds) -- sim-to-real gap exists.
+- Euler angles (not SO(3)) — gimbal lock possible for aggressive maneuvers.
+- Real-data position x/y is dead-reckoned (no GPS).
+- Sim-to-real gap: prober trained on PyFlyt, evaluated on Wilds.
+- Wilds eval uses zero controls (motor commands unavailable); nominal physics is gravity-only at eval time.
+- Earlier v2 results used state-derived actions and are **invalid** (information leak); use v3 only.
 
 ## Relation to SkyJEPA
 
-Extends SkyJEPA's prober concept to a looped latent world model and evaluates
-whether adaptive compute (the looped predictor) improves metric groundability.
-See `research/prober/note.md` for the full comparison.
+Extends SkyJEPA's prober concept to a looped latent world model. Key addition: we test whether looped predictor refinement improves metric groundability (it does not, at full scale). See `research/prober/note.md`.
