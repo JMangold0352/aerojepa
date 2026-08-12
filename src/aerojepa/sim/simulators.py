@@ -2,21 +2,17 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-# Optional simulator hooks. These are thin, clearly-marked adapters to two common
-# quadrotor simulators. They are NOT required for anything in the core project;
-# they exist so that closed-loop, sim-based evaluation of the world model is a
-# short step away when we get there (see docs/ROADMAP.md, Phase 4).
-#
-# Both dependencies are optional extras (`pip install PyFlyt` /
-# `pip install gym-pybullet-drones`) and are imported lazily so the base install
-# stays lean and CI never needs them.
+# Optional simulator hooks. Thin adapters to common quadrotor simulators.
+# Not required for core training/eval. Install extras (`PyFlyt`,
+# `gym-pybullet-drones`) and import lazily so the base install stays lean.
 
 
-def make_pyflyt_env(env_id: str = "PyFlyt/QuadX-Hover-v2", **kwargs: Any):
+def make_pyflyt_env(env_id: str = "PyFlyt/QuadX-Hover-v4", **kwargs: Any):
     """Create a PyFlyt Gymnasium environment, if PyFlyt is installed.
 
     PyFlyt is a lightweight, well-maintained UAV simulator that is easy to run
     headless -- our preferred target for latent-space planning experiments.
+    Defaults to ``QuadX-Hover-v4`` (matches the AeroProber data generator).
     """
     try:
         import gymnasium as gym
@@ -44,7 +40,7 @@ def make_pybullet_drones_env(**kwargs: Any):
 
 def run_hover_episode(
     policy: Callable[[Any], Any] | None = None,
-    env_id: str = "PyFlyt/QuadX-Hover-v2",
+    env_id: str = "PyFlyt/QuadX-Hover-v4",
     max_steps: int = 500,
     seed: int = 0,
     **env_kwargs: Any,

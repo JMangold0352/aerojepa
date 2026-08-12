@@ -134,3 +134,20 @@ def test_from_stack_roundtrip():
     assert torch.allclose(recovered.vel, state.vel)
     assert torch.allclose(recovered.euler_att, state.euler_att)
     assert torch.allclose(recovered.ang_vel, state.ang_vel)
+
+
+def test_control_integrator_hover_cancels_gravity():
+    """Normalized hover thrust should cancel gravity when level (zero residual)."""
+    from aerojepa_research.prober.integrator import ControlIntegrator
+
+    g = -9.81
+    hover = 0.39
+    integ = ControlIntegrator(dt=0.025, gravity=g, mass=1.0, hover_thrust=hover)
+    state = MetricState.zeros(1)
+    control = torch.tensor([[0.0, 0.0, 0.0, hover]])
+    res = torch.zeros(1, 3)
+    nxt = integ.step(state, control, res, res)
+    # Level hover: a_z ≈ 0 → velocity stays ~0.
+    assert abs(nxt.vel[0, 2].item()) < 1e-4
+    assert abs(nxt.pos[0, 2].item()) < 1e-5
+

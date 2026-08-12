@@ -1,0 +1,28 @@
+# Continue action-conditioned Wilds fine-tune: denser windows, gentler LR, more epochs.
+# Goal: close the protocol-B real cosine gap vs real_finetune_fast without dropping
+# action conditioning (needed for closed-loop gradient + residual).
+#
+# Model input remains 64×64 (see docs/EVAL_PROTOCOL.md). Source clips are 128 on disk.
+#
+#   python scripts/train.py --config configs/aerojepa_finetune_action_v2.yaml --device mps
+#   python scripts/evaluate_real.py \
+#       --checkpoint checkpoints/action_conditioned_wilds_v2/latest.pt \
+#       --data-dir data/flights_128 --max-batches 8 \
+#       --out results/action_conditioned_wilds_v2_real_eval.json
+_base_: aerojepa_finetune_action.yaml
+
+data:
+  batch_size: 8
+  window_stride: 4          # denser than v1 stride 8
+  val_fraction: 0.1
+
+train:
+  init_checkpoint: checkpoints/action_conditioned_wilds/latest.pt
+  lr: 0.00003
+  warmup_epochs: 1
+  epochs: 15
+  run_dir: runs/action_conditioned_wilds_v2
+  checkpoint_dir: checkpoints/action_conditioned_wilds_v2
+
+eval:
+  eval_every_epochs: 3

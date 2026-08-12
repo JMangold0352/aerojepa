@@ -1,0 +1,41 @@
+{
+  "planner": {
+    "policy": "planner",
+    "seed": 0,
+    "steps": 80,
+    "total_reward": 176.02368328985511,
+    "mean_reward": 2.200296041123189,
+    "survived": true,
+    "final_altitude": 1.2214685678482056,
+    "altitude_mae": 0.19531920809804657,
+    "xy_drift": 0.371275931596756,
+    "max_xy_drift": 0.371275931596756,
+    "mean_plan_cost": 0.0023857661173678933
+  },
+  "hover": {
+    "policy": "hover",
+    "seed": 0,
+    "steps": 80,
+    "total_reward": 191.67945448479784,
+    "mean_reward": 2.395993181059973,
+    "survived": true,
+    "final_altitude": 1.2241188287734985,
+    "altitude_mae": 0.19528857866923013,
+    "xy_drift": 0.0,
+    "max_xy_drift": 0.0,
+    "mean_plan_cost": null
+  },
+  "random": {
+    "policy": "random",
+    "seed": 0,
+    "steps": 80,
+    "total_reward": 56.65485697573246,
+    "mean_reward": 0.7081857121966557,
+    "survived": true,
+    "final_altitude": 0.5356719493865967,
+    "altitude_mae": 0.34476865073780955,
+    "xy_drift": 1.4698503017425537,
+    "max_xy_drift": 1.4698503017425537,
+    "mean_plan_cost": null
+  }
+}

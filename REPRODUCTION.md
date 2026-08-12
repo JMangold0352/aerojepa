@@ -81,6 +81,20 @@ python visualizations/compare_ablations.py
 python app.py --checkpoint checkpoints/world_model/latest.pt   # http://127.0.0.1:7860
 ```
 
+## 7. Closed-loop (PyFlyt)
+
+Needs `pip install -e ".[sim]"`. Run outside sandboxed environments.
+
+```bash
+python scripts/run_closed_loop_demo.py \
+  --checkpoint checkpoints/action_conditioned_wilds/latest.pt \
+  --residual-checkpoint checkpoints/action_residual_wilds/best.pt \
+  --planner gradient --latent-smooth 0.05 --task hover
+```
+
+Full metric recipes (including 64 vs 128, gap eval, multi-seed tables):
+[`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md).
+
 ## Determinism notes
 
 - Seeds are set for Python, NumPy, and Torch (`utils/seed.py`); synthetic clips

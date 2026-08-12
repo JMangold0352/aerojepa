@@ -1,0 +1,43 @@
+{
+  "task": "recover",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "max_steps": 220,
+  "recover_seek_blend": 0.3,
+  "planner_gradient": {
+    "grad_steps": 20,
+    "grad_candidates": 12,
+    "grad_action_limit": 0.2,
+    "grad_vel_gain": 1.0,
+    "latent_smooth": 0.0
+  },
+  "final_xy_drift": {
+    "shooting_per_seed": [
+      0.971,
+      1.439,
+      1.223,
+      0.816,
+      0.924
+    ],
+    "gradient_per_seed": [
+      0.562,
+      0.592,
+      0.305,
+      0.52,
+      0.268
+    ],
+    "shooting_mean": 1.074,
+    "gradient_mean": 0.45,
+    "reduction_pct": 58.2
+  },
+  "post_disturb_max_xy": {
+    "shooting_mean": 2.126,
+    "gradient_mean": 2.178
+  },
+  "note": "Gradient = multi-step differentiable planning (pos/vel/attitude cost, momentum-aware braking). Shooting = random-shooting one-step lookahead. Both use identical recover pipeline and seek blend; only the planner differs."
+}

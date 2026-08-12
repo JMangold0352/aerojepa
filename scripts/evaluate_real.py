@@ -8,8 +8,7 @@ data sources with identical code:
   2. a folder of real clips (``--data-dir``, default ``data/flights``),
 
 then prints and saves the difference. A small gap means the world model
-transfers; a large one quantifies exactly how much real data (or fine-tuning)
-is still needed. Sim-to-real, measured honestly.
+transfers; a large one shows how much real data (or fine-tuning) is still needed.
 
 Examples::
 

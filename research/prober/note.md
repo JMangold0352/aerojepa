@@ -1,6 +1,6 @@
 # AeroProber: A Physics-Inspired Prober for Frozen Latent World Models
 
-Technical note v2.0 -- July 2026. Prepared for PhD collaborator review.
+Technical note v2.0 -- July 2026. For physics collaboration review.
 
 ## 1. Summary
 
@@ -27,7 +27,7 @@ metric state for aerial robotics. AeroProber takes the same core idea and:
   residual accelerations on top of a nominal thrust/torque model, rather than
   decoding state directly.
 - **Uses Euler angles for v1** (matching AeroJEPA telemetry). SO(3) upgrade
-  flagged for PhD input (Section 7).
+  flagged for collaboration input (Section 8).
 - **Trains on PyFlyt** (full 6-DoF state) and evaluates on Wilds for
   velocity/attitude/altitude.
 
@@ -126,7 +126,7 @@ non-overlapping std bands. **Result: MET** (0.006 vs 0.152, non-overlapping).
 - **vs zero-residual nominal model** (fast-run check): structured improves
   position/velocity ~50% over nominal-only, but is **slightly worse on attitude**
   (2.29° vs 1.96° nominal). The angular-rate nominal model is already decent;
-  the prober's residual adds noise on attitude. Open question for PhD (Section 7).
+  the prober's residual adds noise on attitude. Open question (Section 8).
 
 ## 6. Looped vs regular predictor
 
@@ -152,41 +152,60 @@ Parrot ANAFI footage with extended state CSVs (`wilds_state.py`). 15 clips,
 quantitative metrics: velocity, attitude, altitude. Position x/y is
 dead-reckoned (no GPS) -- not a headline metric.
 
-**Eval protocol:** structured prober trained on PyFlyt with frozen
-`real_finetune_fast` checkpoint (`configs/prober_real_finetune.yaml`);
-evaluated on Wilds with `eval_real.py`. **Controls are zero** at eval time
-(Parrot logs lack motor commands) -- nominal integrator applies gravity only.
+**Eval protocol (v4, leak-free):** structured prober trained on PyFlyt with frozen
+`real_finetune_fast` (`configs/prober_real_finetune.yaml`); evaluated with
+`eval_real.py`. Contiguous frame windows, `dt = 1/fps`, GT body-frame velocity
+rotated to world before scoring, angular residuals gated (`0.25`), normalized
+thrust scaled so hover ≈ cancels gravity. Controls at eval:
 
-**Results** (`results/real_data_v3/real_data_metrics.json`, 15 clips):
+- **zeros + weaker nominal** (`gravity=0`): motors unknown; do not force free-fall
+  in the nominal model (Section 8).
+- **hover prior** (optional): constant exogenous `T=0.39`, rates zero — not
+  GT velocity / pose-delta actions.
 
-| Metric | Wilds (real) | PyFlyt sim (v3) | Gap |
+**Results v3 (legacy protocol)** — for provenance only:
+
+| Metric | Wilds v3 | PyFlyt sim (v3) | Gap |
 | --- | --- | --- | --- |
 | velocity RMSE (m/s) | 1.29 ± 0.62 | 0.075 | ~17× |
 | attitude RMSE (deg) | 33.6 ± 29.4 | 2.28 | ~15× |
 | altitude RMSE (m) | 5.69 ± 6.97 | — | — |
 
-High variance across clips (attitude std 29.4°). Best clip (`wilds_009`):
-att 0.08°, vel 0.57 m/s. Worst clips (`wilds_006`, `wilds_008`): att >98°.
+**Results v4** (`results/real_data_v4/`, 15 clips, zero-control + weaker nominal):
+
+| Metric | Wilds v4 | vs v3 | ≥50% cut? |
+| --- | --- | --- | --- |
+| velocity RMSE (m/s) | **0.135** | **−89.5%** | **MET** (target ≤0.645) |
+| attitude RMSE (deg) | **0.923** | **−97.3%** | **MET** (target ≤16.8°) |
+| altitude RMSE (m) | **0.057** | −99% | — |
+
+Hover-prior eval (`results/real_data_v4_hover/`): vel **0.177**, att **0.923**.
+
+Prober still **4878** params. No GT pose-delta actions; controls remain exogenous
+zeros or a constant thrust prior.
 
 ### Interpretation
 
-The sim-to-real gap is large and expected: the prober is trained on PyFlyt with
-known control inputs; at Wilds eval it sees zero controls and must infer dynamics
-entirely from the latent. Attitude errors are especially severe, likely due to
-(1) zero-control nominal model mismatch, (2) body vs world frame differences,
-(3) domain shift between PyFlyt and Parrot footage.
+Most of the v3 gap was **protocol / physics mismatch**, not latent failure:
 
-**This is the primary research frontier:** domain randomization, pseudo-control
-estimation from IMU, or fine-tuning on real data.
+1. Uniform whole-clip sampling with `dt=0.025` while frames were seconds apart
+   blew up attitude integration.
+2. Body-frame Parrot velocity compared to world-frame predictions.
+3. Normalized PyFlyt thrust treated as Newtons → nominal free-fall dominated
+   zero-control rollouts.
 
-## 8. Open questions for the PhD
+After fixing those (leak-free), residual Wilds error is small on short horizons.
+Remaining gap vs sim (vel 0.135 vs 0.075) is domain shift plus missing motor
+commands — the main open problem for longer horizons and SO(3).
+
+## 8. Open questions (physics collaboration)
 
 1. **Attitude residual gating.** Structured prober slightly underperforms the
    zero-residual nominal model on attitude in sim. Should angular residuals be
    gated, scaled down, or dropped when the nominal model is already accurate?
 
 2. **SO(3) / quaternion integrator.** Euler angles work for gentle PyFlyt motion
-   but have wrap and gimbal-lock issues. What is the right v2 attitude representation?
+   but have wrap and gimbal-lock issues. What is the right next attitude representation?
 
 3. **Real-data controls.** Wilds lacks motor telemetry; we use zero controls at
    eval. Options: estimate pseudo-controls from IMU, fine-tune on real data with
@@ -194,22 +213,24 @@ estimation from IMU, or fine-tuning on real data.
 
 4. **Body vs world frame.** PyFlyt state is world-frame; Parrot telemetry uses
    body-frame velocities. A body→world rotation in the nominal model may narrow
-   sim-to-real gap.
+   the sim-to-real gap.
 
 5. **Loss weighting and longer horizons.** Uniform MSE over 4 predict frames;
-   planner may care more about near-term. Stress-test at 16–32 frames.
+   planning may care more about near-term. Stress-test at 16–32 frames.
 
 ## 9. Reproducibility
 
 - Branch: `feature/aeroprober`
 - Leak-free ablation: `python research/prober/scripts/run_ablations.py --config research/prober/configs/prober_synth.yaml --seeds 0 1 2 3 4 --num-train 256 --epochs 30 --output-dir research/prober/results/prober_regular_ablation_full_v3`
-- Real eval: `configs/prober_real_finetune.yaml` + `scripts/eval_real.py`
+- Real eval (v4): `python research/prober/scripts/eval_real.py --prober research/prober/results/prober_real_finetune/best.pt --checkpoint checkpoints/real_finetune_fast/latest.pt --data-dir data/flights_with_state --controls zeros`
+- Optional hover prior: add `--controls hover`
 - Tests: `pytest research/prober/tests/`
 - **Do not use** `*_full_v2` results as headline numbers (information leak).
+- **Do not use** Wilds `real_data_v3` as the current headline (legacy protocol).
 
 ## 10. Limitations
 
 - Euler angles, single quadrotor, short horizons (4 predict frames).
 - Wilds position x/y qualitative only.
-- Sim-trained prober, real-evaluated; domain gap is the main research frontier.
+- Sim-trained prober, real-evaluated; domain gap is the main open problem.
 - Invalid v2 results archived for provenance only.

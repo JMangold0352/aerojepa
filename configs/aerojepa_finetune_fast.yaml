@@ -1,5 +1,6 @@
-# Fast Wilds fine-tune: 128px, 15fps, 60s cap per clip, 10 epochs.
-# Warm-start from the 4K real_finetune checkpoint (epoch 6) on the full 15-clip corpus.
+# Fast Wilds fine-tune: on-disk clips at 128px / 15fps / 60s cap; model input is
+# still data.img_size=64 (see docs/EVAL_PROTOCOL.md). 10 epochs.
+# Warm-start from the real_finetune checkpoint on the full 15-clip corpus.
 #
 #   python scripts/preprocess_real.py --input-dir data/flights \
 #       --output-dir data/flights_128 --target-fps 15 --max-seconds 60 --square --resize 128

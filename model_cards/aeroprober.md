@@ -58,7 +58,7 @@ Pre-registered success criterion (structured position < plain, non-overlapping):
 | attitude RMSE | 33.6 ± 29.4 deg | 2.28 deg |
 | altitude RMSE | 5.69 ± 6.97 m | — |
 
-Eval uses zero controls (no motor telemetry). Large sim-to-real gap; primary research frontier.
+Eval uses zero controls (no motor telemetry). Large sim-to-real gap; main open problem for collaboration.
 
 ## Limitations
 

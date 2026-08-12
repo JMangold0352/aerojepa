@@ -6,6 +6,10 @@ consistent codec + frame rate, optionally square-cropped/resized, keeping any
 telemetry aligned. Also a "dataset doctor" that probes a folder and reports
 per-clip frame counts, fps, resolution, and telemetry status.
 
+Frame-index selection can use an optional Rust accelerator when installed
+(``pip install -e ".[native]"`` then ``maturin develop``); decode/encode stay
+OpenCV in Phase A. See ``docs/NATIVE_PREPROCESS.md``.
+
 Examples::
 
     # Inspect what you have (no writes):
@@ -18,6 +22,9 @@ Examples::
     # Trim long clips and downscale to 128x128 to shrink files:
     python scripts/preprocess_real.py --input-dir data/raw \
         --max-seconds 20 --square --resize 128
+
+    # Force OpenCV or Rust for frame-index selection:
+    python scripts/preprocess_real.py --input-dir data/raw --backend opencv
 """
 
 from __future__ import annotations
@@ -56,6 +63,12 @@ def main() -> None:
     parser.add_argument("--resize", type=int, default=None, help="Resize to NxN pixels.")
     parser.add_argument("--prefix", default="clip", help="Output filename prefix.")
     parser.add_argument("--probe", action="store_true", help="Only inspect; do not write.")
+    parser.add_argument(
+        "--backend",
+        choices=("auto", "opencv", "rust"),
+        default="auto",
+        help="Frame-index backend: auto (Rust if installed), opencv, or rust (Phase A).",
+    )
     args = parser.parse_args()
 
     from aerojepa.data.preprocess import (
@@ -63,6 +76,13 @@ def main() -> None:
         preprocess_directory,
         probe_directory,
     )
+    from aerojepa.data.preprocess_backend import (
+        active_backend,
+        rust_available,
+        set_backend,
+    )
+
+    set_backend(args.backend)
 
     if args.probe:
         infos = probe_directory(args.input_dir)
@@ -73,6 +93,10 @@ def main() -> None:
         return
 
     print(f"Standardizing {args.input_dir} -> {args.output_dir} @ {args.target_fps} fps")
+    print(
+        f"Backend request={args.backend} resolved={active_backend()} "
+        f"(rust_installed={rust_available()})"
+    )
     results = preprocess_directory(
         PreprocessConfig(
             input_dir=args.input_dir,

@@ -1,0 +1,29 @@
+# Fine-tune the action-conditioned world model on Wilds Parrot clips.
+# Keeps action conditioning so closed-loop gradient planning + residual still work.
+# Source: data/flights_128 (128 on disk); model input remains img_size=64.
+#
+#   python scripts/train.py --config configs/aerojepa_finetune_action.yaml --device mps
+# For a denser/longer continuation see aerojepa_finetune_action_v2.yaml.
+_base_: aerojepa_action_conditioned.yaml
+
+data:
+  source: video
+  data_dir: data/flights_128
+  batch_size: 8
+  num_workers: 0
+  val_fraction: 0.1
+  window_mode: sliding
+  window_stride: 8
+  pad_short: true
+  # img_size: 64  (inherited — do not set 128 without a new architecture recipe)
+
+train:
+  init_checkpoint: checkpoints/action_conditioned/latest.pt
+  lr: 0.00005
+  warmup_epochs: 1
+  epochs: 10
+  run_dir: runs/action_conditioned_wilds
+  checkpoint_dir: checkpoints/action_conditioned_wilds
+
+eval:
+  eval_every_epochs: 2

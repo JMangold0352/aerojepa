@@ -1,0 +1,83 @@
+{
+  "planner": {
+    "policy": "planner",
+    "seed": 0,
+    "task": "waypoint",
+    "steps": 33,
+    "total_reward": 63.011290101803496,
+    "mean_reward": 1.9094330333879848,
+    "survived": true,
+    "final_altitude": 1.085668921470642,
+    "altitude_mae": 0.091792832402622,
+    "xy_drift": 0.4026370346546173,
+    "max_xy_drift": 0.4026370346546173,
+    "goal": [
+      0.6,
+      0.0,
+      0.0
+    ],
+    "final_goal_distance": 0.23135337233543396,
+    "min_goal_distance": 0.23135337233543396,
+    "reached": true,
+    "recovered": null,
+    "recovery_steps": null,
+    "post_disturb_max_xy": null,
+    "disturb_at": null,
+    "disturb_steps": null,
+    "mean_plan_cost": 0.0019282560549779898
+  },
+  "hover": {
+    "policy": "hover",
+    "seed": 0,
+    "task": "waypoint",
+    "steps": 160,
+    "total_reward": 370.05932035159077,
+    "mean_reward": 2.3128707521974423,
+    "survived": true,
+    "final_altitude": 1.218329668045044,
+    "altitude_mae": 0.22664475366935966,
+    "xy_drift": 0.0,
+    "max_xy_drift": 0.0,
+    "goal": [
+      0.6,
+      0.0,
+      0.0
+    ],
+    "final_goal_distance": 0.6512881517410278,
+    "min_goal_distance": 0.6000000238418579,
+    "reached": false,
+    "recovered": null,
+    "recovery_steps": null,
+    "post_disturb_max_xy": null,
+    "disturb_at": null,
+    "disturb_steps": null,
+    "mean_plan_cost": null
+  },
+  "random": {
+    "policy": "random",
+    "seed": 0,
+    "task": "waypoint",
+    "steps": 130,
+    "total_reward": -387.8098584504324,
+    "mean_reward": -2.9831527573110184,
+    "survived": false,
+    "final_altitude": 0.19075655937194824,
+    "altitude_mae": 0.4421832847003718,
+    "xy_drift": 5.006054878234863,
+    "max_xy_drift": 5.006054878234863,
+    "goal": [
+      0.6,
+      0.0,
+      0.0
+    ],
+    "final_goal_distance": 4.474518775939941,
+    "min_goal_distance": 0.38466888666152954,
+    "reached": false,
+    "recovered": null,
+    "recovery_steps": null,
+    "post_disturb_max_xy": null,
+    "disturb_at": null,
+    "disturb_steps": null,
+    "mean_plan_cost": null
+  }
+}

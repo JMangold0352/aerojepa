@@ -52,6 +52,7 @@ class Prober(nn.Module):
         control_dim: int = CONTROL_DIM,
         hidden_dim: int = 24,
         num_layers: int = 2,
+        ang_residual_scale: float = 0.25,
     ) -> None:
         super().__init__()
         self.latent_dim = latent_dim
@@ -78,6 +79,14 @@ class Prober(nn.Module):
         with torch.no_grad():
             last.weight.mul_(0.01)
 
+        # Gate angular residuals (sim evidence: unstructured ang residuals can
+        # hurt attitude vs a decent rate nominal). Fixed buffer keeps param
+        # count unchanged; set via ``ang_residual_scale`` in config/ctor.
+        self.register_buffer(
+            "ang_residual_scale",
+            torch.tensor(float(ang_residual_scale), dtype=torch.float32),
+        )
+
     def forward(self, latent: torch.Tensor, controls: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Predict residual accelerations for each frame.
 
@@ -94,6 +103,7 @@ class Prober(nn.Module):
         x = torch.cat([latent, controls], dim=-1)
         out = self.mlp(x)
         res_lin, res_ang = torch.split(out, [3, 3], dim=-1)
+        res_ang = res_ang * self.ang_residual_scale
         return res_lin, res_ang
 
     def num_params(self) -> int:

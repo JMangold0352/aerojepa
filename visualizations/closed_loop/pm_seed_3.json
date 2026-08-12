@@ -1,0 +1,41 @@
+{
+  "task": "recover",
+  "seed": 3,
+  "max_steps": 220,
+  "recover_seek_blend": 0.3,
+  "world_checkpoint": "checkpoints/action_conditioned/latest.pt",
+  "grad_steps": 20,
+  "grad_candidates": 12,
+  "latent_smooth": 0.0,
+  "shooting": {
+    "planner_mode": "shooting",
+    "steps": 125,
+    "xy_drift_final": 0.8156707882881165,
+    "max_xy_drift": 1.9524409770965576,
+    "post_disturb_max_xy": 1.9524409770965576,
+    "recovered": false,
+    "recovery_steps": null,
+    "survived": false,
+    "altitude_mae": 0.18921875655059778,
+    "mean_plan_cost": 0.17564667018086766,
+    "total_reward": -188.3510155804377
+  },
+  "gradient": {
+    "planner_mode": "gradient",
+    "steps": 132,
+    "xy_drift_final": 0.5196521282196045,
+    "max_xy_drift": 2.2052323818206787,
+    "post_disturb_max_xy": 2.2052323818206787,
+    "recovered": false,
+    "recovery_steps": null,
+    "survived": false,
+    "altitude_mae": 0.20822404827782534,
+    "mean_plan_cost": 82.80364806925914,
+    "total_reward": -237.46310761880116
+  },
+  "improvement": {
+    "final_xy_drift": 0.29601866006851196,
+    "post_disturb_max_xy": -0.2527914047241211,
+    "final_xy_drift_pct": 36.29143820263309
+  }
+}

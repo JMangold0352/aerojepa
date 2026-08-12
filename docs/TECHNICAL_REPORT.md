@@ -1,22 +1,19 @@
 # AeroJEPA Technical Report
 
-*Status: kickoff / Phase 1. This document describes the architecture and design
-rationale of the initial release. Experimental results are produced by the
-evaluation harness and logged in [REPORT.md](../REPORT.md).*
+Architecture and design notes for the initial release. Measured results live in
+[REPORT.md](../REPORT.md).
 
 ## 1. Motivation
 
-Perception for autonomy is usually framed as recognition -- label the frame. But
-an autonomous drone needs something recognition does not give it: the ability to
-**anticipate**. If the system can predict the near future of its own sensory
-stream, it can plan around obstacles, react to motion, and do so with far less
-labeled data than a supervised detector would need.
+Perception for autonomy is often framed as recognition: label the frame. A drone
+also needs to **anticipate** — predict the near future of its sensory stream so
+it can plan around obstacles and motion with less labeled data than a supervised
+detector.
 
-JEPA (Joint-Embedding Predictive Architecture) is a natural fit. Rather than
-reconstructing pixels -- which wastes capacity on textures and noise that do not
-matter for control -- JEPA predicts the **latent** representation of hidden
-content. The training signal comes from an exponential-moving-average (EMA)
-teacher, so no labels and no contrastive negatives are required.
+JEPA (Joint-Embedding Predictive Architecture) predicts **latent** representations
+rather than pixels, so capacity goes to structure that matters for control rather
+than textures and noise. An EMA teacher provides the training target; no labels
+and no contrastive negatives are required.
 
 The parent project, [looped-jepa](https://github.com/JMangold0352/looped-jepa),
 established that a **recurrent** predictor -- one small block stack re-applied
@@ -107,14 +104,13 @@ obstacles. `data/video_dataset.py` is a drop-in replacement for real footage.
 - **Loop analysis** (`eval/loop_metrics.py`): per-loop cosine (is recurrence
   refining?), exit distribution, and expected loops (compute actually spent).
 
-## 6. Limitations and honesty
+## 6. Limitations
 
-- The synthetic benchmark is a *proxy*. It validates the pipeline and the
-  scientific question, but real aerial video is the true test (roadmap Phase 2).
-- Latent prediction quality is not the same as task success; downstream planning
-  metrics (Phase 4) are needed to claim autonomy value.
-- The planner in `sim/planner.py` is a readable reference (random shooting with a
-  placeholder cost), not a flight controller.
+- The synthetic benchmark is a proxy. It validates the pipeline; real aerial
+  video is the stronger test.
+- Latent prediction quality is not the same as task success; closed-loop metrics
+  matter for any autonomy claim.
+- The planner in `sim/planner.py` plus PyFlyt demos are research references, not
+  a flight controller.
 
-See [REPORT.md](../REPORT.md) for the running experiment log, including negative
-results, and [ROADMAP.md](ROADMAP.md) for what comes next.
+See [REPORT.md](../REPORT.md) for the experiment log.

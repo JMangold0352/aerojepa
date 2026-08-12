@@ -47,16 +47,23 @@ def build_model_and_loss(cfg: dict, device: torch.device):
     """Build the prober arm + loss for the configured arm type."""
     arm = cfg.get("arm", "structured")  # structured | plain | naive
     integ = ControlIntegrator(
-        dt=cfg["integrator"]["dt"], gravity=cfg["integrator"]["gravity"],
+        dt=cfg["integrator"]["dt"],
+        gravity=cfg["integrator"]["gravity"],
         mass=cfg["integrator"].get("mass", 1.0),
+        hover_thrust=float(cfg["integrator"].get("hover_thrust", 0.39)),
     ).to(device)
 
     if arm == "structured":
         prober = Prober(
             hidden_dim=cfg["prober"]["hidden_dim"],
             num_layers=cfg["prober"]["num_layers"],
+            ang_residual_scale=float(cfg["prober"].get("ang_residual_scale", 0.25)),
         ).to(device)
-        loss_fn = StructuredProberLoss(integ).to(device)
+        loss_fn = StructuredProberLoss(
+            integ,
+            control_dropout=float(cfg["train"].get("control_dropout", 0.0)),
+            vel_weight=float(cfg["train"].get("vel_weight", 1.0)),
+        ).to(device)
         params = list(prober.parameters())
         return prober, loss_fn, params, arm
     if arm == "plain":
@@ -88,6 +95,8 @@ def compute_loss(arm, model, loss_fn, rollout):
 @torch.no_grad()
 def evaluate(extractor, model, loss_fn, loader, device, arm, max_loops=None):
     model.eval() if hasattr(model, "eval") else None
+    if hasattr(loss_fn, "eval"):
+        loss_fn.eval()
     total_loss = 0.0
     n = 0
     for clips, _actions, states, controls in loader:
@@ -151,6 +160,8 @@ def main():
     best_val = float("inf")
     for epoch in range(cfg["train"]["epochs"]):
         model.train() if hasattr(model, "train") else None
+        if hasattr(loss_fn, "train"):
+            loss_fn.train()
         epoch_loss = 0.0
         n = 0
         for clips, _actions, states, controls in train_loader:

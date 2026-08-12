@@ -132,30 +132,26 @@ def generate_clip(
     flight_dome_size: float = 5.0,
     max_duration_seconds: float = 10.0,
     agent_hz: int = 40,
+    wind_mps: float = 0.0,
+    wind_direction: tuple[float, float, float] = (1.0, 0.0, 0.0),
+    control_mode: str = "random",
 ) -> PyFlytClip:
     """Render one deterministic PyFlyt clip with full metric state.
 
-    The drone is driven by random control actions (angular rates + thrust) from
-    a seeded RNG, producing physically-plausible motion. We record rendered
-    frames + the full metric state at each control step, then derive AeroJEPA-
-    convention actions from consecutive states.
+    The drone is driven by:
 
-    Parameters
-    ----------
-    seed : int
-        Reproducibility seed for both the Python RNG and the gym env.
-    num_frames : int
-        Clip length in frames.
-    img_size : int
-        Rendered frame size (matches AeroJEPA img_size; 64 for synth configs).
-    flight_dome_size, max_duration_seconds, agent_hz : gym env params.
-
-    Returns
-    -------
-    PyFlytClip
+    * ``random`` — small random PyFlyt controls
+    * ``hover`` — altitude PD + lean against XY velocity / known wind
+    * ``kick`` — brief lateral disturb, then brake + home toward start
+    * ``turn`` — seek along an L-path (leg1 then leg2) for corner supervision
     """
     import gymnasium
     import PyFlyt.gym_envs  # noqa: F401  -- registers envs
+
+    if control_mode not in ("random", "hover", "kick", "turn"):
+        raise ValueError(
+            f"control_mode must be one of random/hover/kick/turn, got {control_mode!r}"
+        )
 
     rng = np.random.default_rng(seed)
     env = gymnasium.make(
@@ -170,10 +166,23 @@ def generate_clip(
     try:
         obs, _info = env.reset(seed=seed)
 
-        # Pre-sample the entire control-action sequence from our own seeded RNG
-        # so clips are reproducible. The action space is (vp, vq, vr, T) with
-        # bounds [-pi, pi]^3 x [0, 0.8]; we sample uniformly and scale down for
-        # gentler motion that stays in-dome.
+        # Optional constant wind field (same API as closed_loop wind_gust).
+        if wind_mps > 0:
+            direction = np.asarray(wind_direction, dtype=np.float64).reshape(3)
+            norm = float(np.linalg.norm(direction))
+            if norm < 1e-8:
+                direction = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+                norm = 1.0
+            wind_vec = (direction / norm) * float(wind_mps)
+
+            def wind_fn(time: float, position: np.ndarray) -> np.ndarray:
+                return np.broadcast_to(wind_vec, position.shape).copy()
+
+            env.unwrapped.env.register_wind_field_function(wind_fn)
+        else:
+            wind_vec = np.zeros(3, dtype=np.float64)
+
+        # Pre-sample random controls when needed.
         low = env.action_space.low.astype(np.float32)
         high = env.action_space.high.astype(np.float32)
         raw_actions = rng.uniform(low, high, size=(num_frames, 4)).astype(np.float32) * 0.3
@@ -183,26 +192,71 @@ def generate_clip(
         controls: list[np.ndarray] = []
 
         # Record the initial state + frame (before any action).
-        # The control command for frame 0 is undefined (no preceding step);
-        # use zeros so control_actions has shape (T, 4) aligned with states.
         frames.append(_obs_to_frame(env.render(), img_size))
         states.append(_obs_to_metric_state(obs))
         controls.append(np.zeros(4, dtype=np.float32))
 
-        # Step the env with our pre-sampled control actions.
-        # raw_actions[t] drives the transition to frame t+1, so we record it
-        # as the control for frame t+1 (the command in effect during that frame).
+        hover_thrust = 0.39
+        start_pos = obs[9:12].astype(np.float32).copy()
+        # Kick schedule: settle → disturb → brake/home.
+        kick_at = max(1, num_frames // 4)
+        kick_end = min(num_frames - 2, kick_at + max(2, num_frames // 5))
+        kick_action = np.array([0.0, 0.75, 0.0, hover_thrust], dtype=np.float32)
+        # L-turn targets (meters from start).
+        leg1 = start_pos + np.array([0.5, 0.0, 0.0], dtype=np.float32)
+        leg2 = start_pos + np.array([0.5, 0.5, 0.0], dtype=np.float32)
+        turn_goal = leg1
+        turn_reached_leg1 = False
+
         for t in range(num_frames - 1):
-            obs, _rew, term, trunc, _info = env.step(raw_actions[t])
+            if control_mode == "hover":
+                action = _hover_counter_action(obs, states[0], wind_vec, hover_thrust)
+            elif control_mode == "kick":
+                if kick_at <= t < kick_end:
+                    action = kick_action.copy()
+                elif t < kick_at:
+                    action = _hover_counter_action(obs, states[0], wind_vec, hover_thrust)
+                else:
+                    # Brake if still fast, otherwise seek home.
+                    lin_vel = obs[6:9].astype(np.float32)
+                    if float(np.linalg.norm(lin_vel[:2])) > 0.6:
+                        action = _brake_control(obs, hover_thrust)
+                    else:
+                        action = _seek_control(obs, start_pos, hover_thrust)
+            elif control_mode == "turn":
+                lin_pos = obs[9:12].astype(np.float32)
+                if not turn_reached_leg1 and float(np.linalg.norm(lin_pos - leg1)) < 0.35:
+                    turn_reached_leg1 = True
+                    turn_goal = leg2
+                # Early corner look-ahead once close to leg1.
+                if (
+                    not turn_reached_leg1
+                    and float(np.linalg.norm(lin_pos - leg1)) < 0.55
+                ):
+                    action = _seek_control(obs, leg2, hover_thrust)
+                else:
+                    action = _seek_control(obs, turn_goal, hover_thrust)
+            else:
+                action = raw_actions[t]
+
+            obs, _rew, term, trunc, _info = env.step(action)
             frames.append(_obs_to_frame(env.render(), img_size))
             states.append(_obs_to_metric_state(obs))
-            controls.append(raw_actions[t].copy())
+            controls.append(action.copy())
             if term or trunc:
-                # Reset and continue -- the clip will be padded if needed.
                 obs, _info = env.reset(seed=seed + t + 1)
+                if wind_mps > 0:
+                    env.unwrapped.env.register_wind_field_function(
+                        lambda time, position, wv=wind_vec: np.broadcast_to(wv, position.shape).copy()
+                    )
                 frames[-1] = _obs_to_frame(env.render(), img_size)
                 states[-1] = _obs_to_metric_state(obs)
-                controls[-1] = np.zeros(4, dtype=np.float32)  # reset breaks continuity
+                controls[-1] = np.zeros(4, dtype=np.float32)
+                start_pos = obs[9:12].astype(np.float32).copy()
+                leg1 = start_pos + np.array([0.5, 0.0, 0.0], dtype=np.float32)
+                leg2 = start_pos + np.array([0.5, 0.5, 0.0], dtype=np.float32)
+                turn_goal = leg1
+                turn_reached_leg1 = False
     finally:
         env.close()
 
@@ -227,6 +281,59 @@ def generate_clip(
         metric_state=torch.from_numpy(states_np.astype(np.float32)),
         control_actions=torch.from_numpy(controls_np.astype(np.float32)),
     )
+
+
+def _hover_counter_action(
+    obs: np.ndarray,
+    start_state: np.ndarray,
+    wind_vec: np.ndarray,
+    hover_thrust: float,
+) -> np.ndarray:
+    """Altitude PD + lean against XY drift / known wind."""
+    lin_vel = obs[6:9].astype(np.float32)
+    lin_pos = obs[9:12].astype(np.float32)
+    z_des = float(start_state[2])
+    kp_v, kp_w = 0.55, 0.18
+    vp = float(np.clip(kp_v * lin_vel[1] - kp_w * wind_vec[1], -1.2, 1.2))
+    vq = float(np.clip(-kp_v * lin_vel[0] - kp_w * wind_vec[0], -1.2, 1.2))
+    thrust = float(
+        np.clip(
+            hover_thrust + 0.35 * (z_des - float(lin_pos[2])) - 0.15 * float(lin_vel[2]),
+            0.0,
+            0.8,
+        )
+    )
+    return np.array([vp, vq, 0.0, thrust], dtype=np.float32)
+
+
+def _brake_control(obs: np.ndarray, hover_thrust: float) -> np.ndarray:
+    """Velocity-kill PD (lean against lateral speed)."""
+    lin_vel = obs[6:9].astype(np.float32)
+    kd_xy, kd_z = 0.9, 0.15
+    vp = float(np.clip(kd_xy * lin_vel[1], -1.2, 1.2))
+    vq = float(np.clip(-kd_xy * lin_vel[0], -1.2, 1.2))
+    thrust = float(np.clip(hover_thrust - kd_z * lin_vel[2], 0.0, 0.8))
+    return np.array([vp, vq, 0.0, thrust], dtype=np.float32)
+
+
+def _seek_control(
+    obs: np.ndarray,
+    goal_world: np.ndarray,
+    hover_thrust: float,
+) -> np.ndarray:
+    """Reactive PD toward a world-frame goal (same signs as closed_loop)."""
+    lin_vel = obs[6:9].astype(np.float32)
+    lin_pos = obs[9:12].astype(np.float32)
+    err = np.asarray(goal_world, dtype=np.float32) - lin_pos
+    dist_xy = float(np.linalg.norm(err[:2]))
+    gain = float(np.clip(dist_xy / 0.6, 0.25, 1.0))
+    kp_xy, kd_xy = 1.0, 0.55
+    vp = float(np.clip(-(gain * kp_xy * err[1] - kd_xy * lin_vel[1]), -1.2, 1.2))
+    vq = float(np.clip(gain * kp_xy * err[0] - kd_xy * lin_vel[0], -1.2, 1.2))
+    thrust = float(
+        np.clip(hover_thrust + 0.35 * err[2] - 0.15 * lin_vel[2], 0.0, 0.8)
+    )
+    return np.array([vp, vq, 0.0, thrust], dtype=np.float32)
 
 
 def _obs_to_frame(frame: np.ndarray, img_size: int) -> np.ndarray:
@@ -260,6 +367,12 @@ class PyFlytClipsDataset(Dataset):
 
     Each index maps deterministically to one clip via a per-sample seed, so the
     dataset is fully reproducible (mirrors ``SyntheticDroneClips``).
+
+    Stress mix (fractions are applied in order, remainder is random):
+
+    * ``wind_fraction`` — hover / wind-counter under constant wind
+    * ``kick_fraction`` — disturb then brake/home (recover supervision)
+    * ``turn_fraction`` — L-path seek (corner supervision)
     """
 
     def __init__(
@@ -271,6 +384,11 @@ class PyFlytClipsDataset(Dataset):
         flight_dome_size: float = 5.0,
         max_duration_seconds: float = 10.0,
         agent_hz: int = 40,
+        wind_mps: float = 0.0,
+        wind_fraction: float = 0.0,
+        wind_mps_max: float | None = None,
+        kick_fraction: float = 0.0,
+        turn_fraction: float = 0.0,
     ) -> None:
         self.num_clips = num_clips
         self.num_frames = num_frames
@@ -279,18 +397,65 @@ class PyFlytClipsDataset(Dataset):
         self.flight_dome_size = flight_dome_size
         self.max_duration_seconds = max_duration_seconds
         self.agent_hz = agent_hz
+        self.wind_mps = float(wind_mps)
+        self.wind_fraction = float(np.clip(wind_fraction, 0.0, 1.0))
+        self.wind_mps_max = float(wind_mps_max) if wind_mps_max is not None else max(self.wind_mps, 3.0)
+        self.kick_fraction = float(np.clip(kick_fraction, 0.0, 1.0))
+        self.turn_fraction = float(np.clip(turn_fraction, 0.0, 1.0))
+        total = self.wind_fraction + self.kick_fraction + self.turn_fraction
+        if total > 1.0 + 1e-6:
+            raise ValueError(
+                f"wind+kick+turn fractions must sum to ≤1, got {total:.3f}"
+            )
 
     def __len__(self) -> int:
         return self.num_clips
 
+    def _mode_for_index(self, idx: int) -> str:
+        """Deterministic stress assignment from index (percent buckets)."""
+        bucket = idx % 100
+        wind_cut = int(100 * self.wind_fraction)
+        kick_cut = wind_cut + int(100 * self.kick_fraction)
+        turn_cut = kick_cut + int(100 * self.turn_fraction)
+        if bucket < wind_cut:
+            return "wind"
+        if bucket < kick_cut:
+            return "kick"
+        if bucket < turn_cut:
+            return "turn"
+        return "random"
+
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        clip_seed = self.seed * 100_003 + idx
+        mode = self._mode_for_index(idx)
+        if mode == "wind":
+            rng = np.random.default_rng(clip_seed + 17)
+            w = float(rng.uniform(max(self.wind_mps, 0.5), self.wind_mps_max))
+            angle = float(rng.uniform(0, 2 * np.pi))
+            direction = (np.cos(angle), np.sin(angle), 0.0)
+            control_mode = "hover"
+        elif mode == "kick":
+            w = 0.0
+            direction = (1.0, 0.0, 0.0)
+            control_mode = "kick"
+        elif mode == "turn":
+            w = 0.0
+            direction = (1.0, 0.0, 0.0)
+            control_mode = "turn"
+        else:
+            w = 0.0
+            direction = (1.0, 0.0, 0.0)
+            control_mode = "random"
         clip = generate_clip(
-            seed=self.seed * 100_003 + idx,
+            seed=clip_seed,
             num_frames=self.num_frames,
             img_size=self.img_size,
             flight_dome_size=self.flight_dome_size,
             max_duration_seconds=self.max_duration_seconds,
             agent_hz=self.agent_hz,
+            wind_mps=w,
+            wind_direction=direction,
+            control_mode=control_mode,
         )
         return clip.frames, clip.actions, clip.metric_state, clip.control_actions
 
@@ -303,6 +468,11 @@ def build_pyflyt_dataloaders(
     num_val: int = 32,
     num_workers: int = 0,
     seed: int = 0,
+    wind_mps: float = 0.0,
+    wind_fraction: float = 0.0,
+    wind_mps_max: float | None = None,
+    kick_fraction: float = 0.0,
+    turn_fraction: float = 0.0,
     **env_kwargs: Any,
 ) -> tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
     """Train/val loaders over disjoint PyFlyt clip seeds.
@@ -311,14 +481,18 @@ def build_pyflyt_dataloaders(
     Pre-generating clips to disk (via ``scripts/generate_pyflyt_cache.py``) is
     recommended for larger datasets and is multiprocessing-safe.
     """
-    train = PyFlytClipsDataset(
-        num_clips=num_train, num_frames=num_frames, img_size=img_size,
-        seed=seed, **env_kwargs,
+    common = dict(
+        num_frames=num_frames,
+        img_size=img_size,
+        wind_mps=wind_mps,
+        wind_fraction=wind_fraction,
+        wind_mps_max=wind_mps_max,
+        kick_fraction=kick_fraction,
+        turn_fraction=turn_fraction,
+        **env_kwargs,
     )
-    val = PyFlytClipsDataset(
-        num_clips=num_val, num_frames=num_frames, img_size=img_size,
-        seed=seed + 9973, **env_kwargs,
-    )
+    train = PyFlytClipsDataset(num_clips=num_train, seed=seed, **common)
+    val = PyFlytClipsDataset(num_clips=num_val, seed=seed + 9973, **common)
     train_loader = torch.utils.data.DataLoader(
         train, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=True,
     )

@@ -31,14 +31,17 @@ Same encoder/teacher/predictor stack as
   space.
 - **Model-based planning:** with action conditioning, imagine the latent outcome
   of candidate maneuvers before executing them (see
-  [`sim/planner.py`](../src/aerojepa/sim/planner.py)).
+  [`sim/planner.py`](../src/aerojepa/sim/planner.py) and the closed-loop stack in
+  [aerojepa_action_wilds](aerojepa_action_wilds.md)).
 
 ## Out-of-scope / cautions
 
 - Predicts latents, **not pixels** -- it does not render future frames.
-- The bundled planner uses a placeholder cost; it is a research reference, not a
-  flight controller.
-- Synthetic-data release; real-flight validation is roadmap Phase 2/4.
+- Closed-loop demos use a heuristic action map plus optional residual; research
+  reference, not a flight controller.
+- Synthetic-data numbers in this card; see `REPORT.md` and
+  [`docs/EVAL_PROTOCOL.md`](../docs/EVAL_PROTOCOL.md) for real-flight and
+  closed-loop evals.
 
 ## Performance
 

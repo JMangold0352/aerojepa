@@ -1,8 +1,7 @@
 # Real UAV footage
 
-Phase 2 trains AeroJEPA on real drone video using the **same `(frames, actions)`
-interface** as the synthetic generator, so no model or training code changes are
-needed — you only point a config at a folder of clips.
+Train AeroJEPA on real drone video with the same `(frames, actions)` interface as
+the synthetic generator — point a config at a folder of clips.
 
 ## Folder layout
 
@@ -16,7 +15,10 @@ data/flights/
 ```
 
 - Videos: `.mp4`, `.mov`, `.avi`, or `.mkv`. Any resolution/length — frames are
-  resized to `data.img_size` and sampled to `data.num_frames`.
+  resized to `data.img_size` (**64** in the current recipes) and sampled to
+  `data.num_frames`. Preprocess often writes **128×128** files under
+  `data/flights_128/` for storage; that is not the model input size. See
+  [`docs/EVAL_PROTOCOL.md`](../docs/EVAL_PROTOCOL.md).
 - Telemetry: a sibling `.csv` with the **same base name** as the video. Optional.
   If missing, actions default to zeros (the masked objective still trains; the
   action-conditioned world model needs telemetry to show a benefit).

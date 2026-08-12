@@ -1,0 +1,64 @@
+{
+  "residual_checkpoint": "checkpoints/action_residual/best.pt",
+  "residual_params": 3700,
+  "world_checkpoint": "checkpoints/action_conditioned/latest.pt",
+  "open_loop_note": "val control MSE 0.487 vs heuristic 0.659 (\u221226%) after 8 epochs; 3700 params",
+  "hover": {
+    "before": {
+      "steps": 120,
+      "total_reward": 199.95545821899344,
+      "altitude_mae": 0.21209224984665548,
+      "xy_drift": 1.0281745195388794,
+      "max_xy_drift": 1.0281745195388794,
+      "survived": true,
+      "final_goal_distance": 1.0594133138656616,
+      "min_goal_distance": 0.0,
+      "reached": null
+    },
+    "after": {
+      "steps": 120,
+      "total_reward": 207.8496894078079,
+      "altitude_mae": 0.21259246187761796,
+      "xy_drift": 0.9518004655838013,
+      "max_xy_drift": 0.9518004655838013,
+      "survived": true,
+      "final_goal_distance": 0.9858047366142273,
+      "min_goal_distance": 0.0,
+      "reached": null
+    },
+    "delta": {
+      "reward": 7.8942311888144445,
+      "altitude_mae": 0.0005002120309624825,
+      "xy_drift": -0.07637405395507812
+    }
+  },
+  "waypoint": {
+    "before": {
+      "steps": 33,
+      "total_reward": 63.011290101803496,
+      "altitude_mae": 0.091792832402622,
+      "xy_drift": 0.4026370346546173,
+      "max_xy_drift": 0.4026370346546173,
+      "survived": true,
+      "final_goal_distance": 0.23135337233543396,
+      "min_goal_distance": 0.23135337233543396,
+      "reached": true
+    },
+    "after": {
+      "steps": 34,
+      "total_reward": 65.30458685308089,
+      "altitude_mae": 0.09394332681383405,
+      "xy_drift": 0.41450756788253784,
+      "max_xy_drift": 0.41450756788253784,
+      "survived": true,
+      "final_goal_distance": 0.22288820147514343,
+      "min_goal_distance": 0.22288820147514343,
+      "reached": true
+    },
+    "delta": {
+      "reward": 2.2932967512773956,
+      "altitude_mae": 0.0021504944112120533,
+      "xy_drift": 0.011870533227920532
+    }
+  }
+}

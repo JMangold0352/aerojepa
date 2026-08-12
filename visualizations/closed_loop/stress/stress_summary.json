@@ -1,0 +1,230 @@
+{
+  "world_checkpoint": "checkpoints/action_conditioned/latest.pt",
+  "seed": 0,
+  "heuristic_action_map": "unchanged (fair comparison)",
+  "wind_gust": {
+    "wind_mps": 2.0,
+    "wind_onset": 40,
+    "max_steps": 200,
+    "policies": {
+      "planner": {
+        "steps": 200,
+        "survived": true,
+        "total_reward": 254.85,
+        "altitude_mae": 0.229,
+        "xy_drift": 1.536,
+        "max_xy_drift": 1.536,
+        "reached": null,
+        "waypoints_reached": null,
+        "waypoints_total": null,
+        "failure_mode": "excessive_drift",
+        "failure_detail": "max_xy=1.54 m under 2.0 m/s wind (limit 1.5 m)",
+        "wind_mps": 2.0
+      },
+      "hover": {
+        "steps": 200,
+        "survived": true,
+        "total_reward": 379.65,
+        "altitude_mae": 0.233,
+        "xy_drift": 0.792,
+        "max_xy_drift": 0.792,
+        "reached": null,
+        "waypoints_reached": null,
+        "waypoints_total": null,
+        "failure_mode": "ok",
+        "failure_detail": "held station under 2.0 m/s wind (max_xy=0.79 m)",
+        "wind_mps": 2.0
+      },
+      "random": {
+        "steps": 139,
+        "survived": false,
+        "total_reward": -543.45,
+        "altitude_mae": 0.473,
+        "xy_drift": 6.232,
+        "max_xy_drift": 6.232,
+        "reached": null,
+        "waypoints_reached": null,
+        "waypoints_total": null,
+        "failure_mode": "crash",
+        "failure_detail": "ground contact (z=0.03)",
+        "wind_mps": 2.0
+      }
+    },
+    "metrics_path": "visualizations/closed_loop/stress/wind_gust/closed_loop_wind_gust_metrics.json",
+    "plot_path": "visualizations/closed_loop/stress/wind_gust/closed_loop_wind_gust_trajectories.png",
+    "gif_paths": {
+      "planner": "visualizations/closed_loop/stress/wind_gust/closed_loop_wind_gust_planner.gif",
+      "hover": "visualizations/closed_loop/stress/wind_gust/closed_loop_wind_gust_hover.gif",
+      "random": "visualizations/closed_loop/stress/wind_gust/closed_loop_wind_gust_random.gif"
+    }
+  },
+  "aggressive_turn": {
+    "leg1": [
+      0.8,
+      0.0,
+      0.0
+    ],
+    "leg2": [
+      0.8,
+      0.8,
+      0.0
+    ],
+    "max_steps": 260,
+    "policies": {
+      "planner": {
+        "steps": 116,
+        "survived": false,
+        "total_reward": -1070.83,
+        "altitude_mae": 0.222,
+        "xy_drift": 7.86,
+        "max_xy_drift": 7.86,
+        "reached": false,
+        "waypoints_reached": 1,
+        "waypoints_total": 2,
+        "failure_mode": "out_of_bounds",
+        "failure_detail": "hit flight dome (max_xy=7.86 m, dome\u22488.0 m)",
+        "wind_mps": null
+      },
+      "seek": {
+        "steps": 144,
+        "survived": false,
+        "total_reward": -504.53,
+        "altitude_mae": 0.207,
+        "xy_drift": 0.973,
+        "max_xy_drift": 1.86,
+        "reached": false,
+        "waypoints_reached": 1,
+        "waypoints_total": 2,
+        "failure_mode": "crash",
+        "failure_detail": "ground contact (z=0.06)",
+        "wind_mps": null
+      },
+      "hover": {
+        "steps": 260,
+        "survived": true,
+        "total_reward": 592.67,
+        "altitude_mae": 0.239,
+        "xy_drift": 0.0,
+        "max_xy_drift": 0.0,
+        "reached": false,
+        "waypoints_reached": 0,
+        "waypoints_total": 2,
+        "failure_mode": "missed_turn",
+        "failure_detail": "never reached the first leg (failed to commit)",
+        "wind_mps": null
+      },
+      "random": {
+        "steps": 141,
+        "survived": false,
+        "total_reward": -553.46,
+        "altitude_mae": 0.475,
+        "xy_drift": 6.148,
+        "max_xy_drift": 6.148,
+        "reached": false,
+        "waypoints_reached": 0,
+        "waypoints_total": 2,
+        "failure_mode": "crash",
+        "failure_detail": "ground contact (z=0.03)",
+        "wind_mps": null
+      }
+    },
+    "metrics_path": "visualizations/closed_loop/stress/aggressive_turn/closed_loop_aggressive_turn_metrics.json",
+    "plot_path": "visualizations/closed_loop/stress/aggressive_turn/closed_loop_aggressive_turn_trajectories.png",
+    "gif_paths": {
+      "planner": "visualizations/closed_loop/stress/aggressive_turn/closed_loop_aggressive_turn_planner.gif",
+      "seek": "visualizations/closed_loop/stress/aggressive_turn/closed_loop_aggressive_turn_seek.gif",
+      "hover": "visualizations/closed_loop/stress/aggressive_turn/closed_loop_aggressive_turn_hover.gif",
+      "random": "visualizations/closed_loop/stress/aggressive_turn/closed_loop_aggressive_turn_random.gif"
+    }
+  },
+  "breaking_points": {
+    "table": {
+      "wind_gust": {
+        "planner": {
+          "failure_mode": "excessive_drift",
+          "max_xy_drift": 1.536,
+          "survived": true
+        },
+        "hover": {
+          "failure_mode": "ok",
+          "max_xy_drift": 0.792,
+          "survived": true
+        },
+        "random": {
+          "failure_mode": "crash",
+          "max_xy_drift": 6.232,
+          "survived": false
+        }
+      },
+      "aggressive_turn": {
+        "planner": {
+          "failure_mode": "out_of_bounds",
+          "waypoints": "1/2",
+          "survived": false
+        },
+        "seek": {
+          "failure_mode": "crash",
+          "waypoints": "1/2",
+          "survived": false
+        },
+        "hover": {
+          "failure_mode": "missed_turn",
+          "waypoints": "0/2",
+          "survived": true
+        },
+        "random": {
+          "failure_mode": "crash",
+          "waypoints": "0/2",
+          "survived": false
+        }
+      }
+    },
+    "narrative": [
+      "Wind 2.0 m/s \u2014 planner: excessive_drift (max_xy=1.54 m). max_xy=1.54 m under 2.0 m/s wind (limit 1.5 m)",
+      "Wind 2.0 m/s \u2014 pure hover (no correction): ok (max_xy=0.79 m).",
+      "Planner does NOT beat open-loop hover under wind \u2014 world-model station-keeping breaks here (heuristic map + latent plan insufficient).",
+      "Aggressive L-turn \u2014 planner: out_of_bounds (legs 1/2). hit flight dome (max_xy=7.86 m, dome\u22488.0 m)",
+      "Aggressive L-turn \u2014 privileged seek PD: crash (legs 1/2).",
+      "Wind sweep (160 steps): planner stays under the 1.5 m drift limit through ~4 m/s; both planner and hover trip excessive_drift at 5 m/s.",
+      "At moderate 2 m/s over longer (200-step) exposure the planner over-corrects via the heuristic map and drifts more than inert hover \u2014 active planning hurts here.",
+      "Aggressive L-turn (0.8\u21920.8 corner): both planner and seek clear leg 1 then fail at the 90\u00b0 corner (planner exits the flight dome; seek crashes). Hover never commits (0/2)."
+    ]
+  },
+  "wind_sweep_160steps": [
+    {
+      "wind_mps": 1.0,
+      "planner_max_xy": 1.176,
+      "hover_max_xy": 0.122,
+      "planner_fail": "ok",
+      "hover_fail": "ok"
+    },
+    {
+      "wind_mps": 2.0,
+      "planner_max_xy": 0.826,
+      "hover_max_xy": 0.466,
+      "planner_fail": "ok",
+      "hover_fail": "ok"
+    },
+    {
+      "wind_mps": 3.0,
+      "planner_max_xy": 0.504,
+      "hover_max_xy": 0.999,
+      "planner_fail": "ok",
+      "hover_fail": "ok"
+    },
+    {
+      "wind_mps": 4.0,
+      "planner_max_xy": 0.84,
+      "hover_max_xy": 1.698,
+      "planner_fail": "ok",
+      "hover_fail": "excessive_drift"
+    },
+    {
+      "wind_mps": 5.0,
+      "planner_max_xy": 1.639,
+      "hover_max_xy": 2.542,
+      "planner_fail": "excessive_drift",
+      "hover_fail": "excessive_drift"
+    }
+  ]
+}

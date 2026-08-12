@@ -1,0 +1,54 @@
+{
+  "v1": {
+    "world": "checkpoints/action_conditioned_wilds/latest.pt",
+    "residual": "checkpoints/action_residual_wilds/best.pt",
+    "protocol_b_real_cosine": 0.957
+  },
+  "v2": {
+    "world": "checkpoints/action_conditioned_wilds_v2/latest.pt",
+    "residual": "checkpoints/action_residual_wilds_v2/best.pt",
+    "protocol_b_real_cosine": 0.9145
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "tasks": [
+    {
+      "task": "wind_gust",
+      "v1_success": 1.0,
+      "v2_success": 1.0,
+      "v1_max_xy": 0.346,
+      "v2_max_xy": 0.275
+    },
+    {
+      "task": "aggressive_turn",
+      "v1_success": 1.0,
+      "v2_success": 0.333,
+      "v1_max_xy": 1.376,
+      "v2_max_xy": 1.23
+    },
+    {
+      "task": "recover",
+      "v1_success": 1.0,
+      "v2_success": 1.0,
+      "v1_max_xy": 0.92,
+      "v2_max_xy": 0.919
+    },
+    {
+      "task": "hover",
+      "v1_success": 1.0,
+      "v2_success": 1.0,
+      "v1_max_xy": 0.075,
+      "v2_max_xy": 0.061
+    },
+    {
+      "task": "aggressive_turn_hard",
+      "v1_success": 1.0,
+      "v2_success": 1.0,
+      "v1_max_xy": 0.969,
+      "v2_max_xy": 0.982
+    }
+  ]
+}

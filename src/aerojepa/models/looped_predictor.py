@@ -50,8 +50,6 @@ class LoopedVideoPredictor(nn.Module):
     depth adaptive, so easy clips (say, a drone hovering over flat ground) stop
     early while hard clips (fast motion near obstacles) keep refining.
 
-    In one sentence: it thinks a little longer only when the scene is hard.
-
     Returns predicted target latents, or ``(pred, exit_probs)`` when the gate is
     on.
     """

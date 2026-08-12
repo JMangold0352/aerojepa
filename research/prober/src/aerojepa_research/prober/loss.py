@@ -27,17 +27,22 @@ def wrapped_angle_error(pred: torch.Tensor, target: torch.Tensor) -> torch.Tenso
     return ((pred - target + 180.0) % 360.0) - 180.0
 
 
-def metric_state_mse(pred_stack: torch.Tensor, gt_stack: torch.Tensor) -> torch.Tensor:
+def metric_state_mse(
+    pred_stack: torch.Tensor,
+    gt_stack: torch.Tensor,
+    *,
+    vel_weight: float = 1.0,
+) -> torch.Tensor:
     """MSE over a (B, T, 12) metric-state trajectory with wrapped attitude.
 
     Layout: [pos(3), vel(3), euler_att_deg(3), ang_vel(3)].
+    ``vel_weight`` up-weights velocity channels (helps Wilds zero-control).
     """
-    # Position, velocity, angular velocity: plain squared error.
-    lin_err = pred_stack[..., 0:6] - gt_stack[..., 0:6]
+    pos_err = pred_stack[..., 0:3] - gt_stack[..., 0:3]
+    vel_err = (pred_stack[..., 3:6] - gt_stack[..., 3:6]) * float(vel_weight) ** 0.5
     ang_vel_err = pred_stack[..., 9:12] - gt_stack[..., 9:12]
-    # Attitude: wrapped shortest-angle error.
     att_err = wrapped_angle_error(pred_stack[..., 6:9], gt_stack[..., 6:9])
-    sq_err = torch.cat([lin_err, att_err, ang_vel_err], dim=-1) ** 2
+    sq_err = torch.cat([pos_err, vel_err, att_err, ang_vel_err], dim=-1) ** 2
     return sq_err.mean()
 
 
@@ -46,11 +51,22 @@ class StructuredProberLoss(nn.Module):
 
     The loss sums MSE over position, velocity, wrapped attitude, and angular
     velocity across all predicted horizons.
+
+    ``control_dropout`` (train only): with this probability, zero the control
+    tensor for the batch so the residual must rely on latents — matches the
+    Wilds zero-control eval regime without changing the architecture.
     """
 
-    def __init__(self, integrator: ControlIntegrator) -> None:
+    def __init__(
+        self,
+        integrator: ControlIntegrator,
+        control_dropout: float = 0.0,
+        vel_weight: float = 1.0,
+    ) -> None:
         super().__init__()
         self.integrator = integrator
+        self.control_dropout = float(control_dropout)
+        self.vel_weight = float(vel_weight)
 
     def forward(
         self,
@@ -67,10 +83,18 @@ class StructuredProberLoss(nn.Module):
         loss : scalar tensor
         pred_stack : (B, T, 12) predicted metric trajectory (for logging)
         """
-        res_lin, res_ang = prober(latents, controls)
-        pred_traj = self.integrator.rollout(init_state, controls, res_lin, res_ang)
+        ctrl = controls
+        if self.training and self.control_dropout > 0.0:
+            # Per-sample Bernoulli mask broadcast over time and control dims.
+            keep = (
+                torch.rand(controls.shape[0], 1, 1, device=controls.device, dtype=controls.dtype)
+                >= self.control_dropout
+            ).to(controls.dtype)
+            ctrl = controls * keep
+        res_lin, res_ang = prober(latents, ctrl)
+        pred_traj = self.integrator.rollout(init_state, ctrl, res_lin, res_ang)
         pred_stack = pred_traj.stack()
-        loss = metric_state_mse(pred_stack, gt_states)
+        loss = metric_state_mse(pred_stack, gt_states, vel_weight=self.vel_weight)
         return loss, pred_stack
 
 

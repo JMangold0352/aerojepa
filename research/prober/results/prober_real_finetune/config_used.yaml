@@ -12,16 +12,20 @@ device: mps
 integrator:
   dt: 0.025
   gravity: -9.81
+  hover_thrust: 0.39
   mass: 1.0
 max_loops: 1
 output_dir: research/prober/results/prober_real_finetune
 predictor_mode: regular
 prober:
+  ang_residual_scale: 0.25
   hidden_dim: 24
   num_layers: 2
 train:
   context_frames: 4
+  control_dropout: 0.75
   epochs: 30
   grad_clip: 1.0
   lr: 0.001
+  vel_weight: 8.0
   weight_decay: 0.0

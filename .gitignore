@@ -64,3 +64,9 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# Rust native crate build artifacts (optional accelerator)
+native/**/target/
+native/**/*.so
+native/**/*.dylib
+native/**/*.dll

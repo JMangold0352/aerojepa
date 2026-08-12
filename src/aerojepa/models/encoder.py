@@ -23,9 +23,6 @@ class VideoTransformerEncoder(nn.Module):
     space-time position. The encoder can run over *all* tokens (the EMA teacher
     path) or over an arbitrary *subset* of token indices (the context path),
     which is exactly what JEPA-style masked prediction needs.
-
-    In one sentence: this turns raw drone video into a compact set of
-    "what-is-where-and-when" tokens that the rest of the model reasons over.
     """
 
     def __init__(

@@ -245,13 +245,11 @@ class ControlIntegrator(torch.nn.Module):
     state, so any metric accuracy the prober achieves must come from the latent.
 
     Nominal physics model (what the control alone does):
-        - Thrust ``T`` acts along the body z-axis. World-frame linear
-          acceleration = ``R(att) @ [0, 0, T/mass] + [0, 0, gravity]``.
+        - Thrust ``T`` is a *normalized* PyFlyt-style setpoint in roughly
+          ``[0, 0.8]``. We map it to force so that ``T ≈ hover_thrust`` cancels
+          gravity when level: ``force = (T / hover_thrust) * mass * |g|``.
         - Angular-rate setpoints ``(vp, vq, vr)`` (rad/s) drive the body-frame
-          angular velocity. We treat the setpoint as the target angular
-          velocity (a first-order hold), so the implied angular acceleration
-          is ``(setpoint - current_ang_vel) / dt``. Attitude is then advanced
-          by the new angular velocity.
+          angular velocity via a first-order hold.
 
     The prober predicts residual linear and angular accelerations added to
     these nominal accelerations before the Euler step -- it learns what the
@@ -265,15 +263,22 @@ class ControlIntegrator(torch.nn.Module):
         World-z gravitational acceleration [m/s^2].
     mass : float
         Quadrotor mass [kg]. PyFlyt's QuadX default is ~1.0 kg.
+    hover_thrust : float
+        Normalized thrust setpoint that should hover when level.
     """
 
     def __init__(
-        self, dt: float = 0.025, gravity: float = GRAVITY_Z, mass: float = 1.0
+        self,
+        dt: float = 0.025,
+        gravity: float = GRAVITY_Z,
+        mass: float = 1.0,
+        hover_thrust: float = 0.39,
     ) -> None:
         super().__init__()
         self.dt = dt
         self.gravity = gravity
         self.mass = mass
+        self.hover_thrust = hover_thrust
 
     def nominal_accel(
         self, control: torch.Tensor, state: MetricState
@@ -291,11 +296,13 @@ class ControlIntegrator(torch.nn.Module):
         a_ang_nom : (B, 3)  body-frame angular acceleration [deg/s^2]
         """
         dt = self.dt
-        T = control[..., 3]  # thrust setpoint
-        # Body-frame thrust direction is +z; rotate to world frame.
+        T = control[..., 3]  # normalized thrust setpoint
+        # Map normalized thrust so hover_thrust cancels |gravity| when level.
+        hover = max(float(self.hover_thrust), 1e-6)
+        thrust_acc = (T / hover) * abs(float(self.gravity))  # m/s^2 along body +z
         R = _euler_ypr_to_rotation(state.euler_att)  # (B, 3, 3)
         body_thrust = torch.zeros(*T.shape, 3, device=T.device, dtype=T.dtype)
-        body_thrust[..., 2] = T / self.mass  # acceleration from thrust
+        body_thrust[..., 2] = thrust_acc
         a_lin_nom = torch.einsum("...ij,...j->...i", R, body_thrust)  # (B, 3)
         # Add gravity (world z).
         a_lin_nom = a_lin_nom.clone()

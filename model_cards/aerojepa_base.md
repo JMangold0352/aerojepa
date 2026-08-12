@@ -39,8 +39,8 @@ Parameter budget: single-digit-to-low-tens-of-millions of trainable parameters
 ## Out-of-scope / cautions
 
 - Not a detector or classifier on its own; it produces representations.
-- Trained (in this release) on **synthetic** clips -- treat as a pipeline and
-  research reference until real-data numbers land (roadmap Phase 2).
+- Trained (in this card's numbers) on **synthetic** clips; check `REPORT.md` /
+  `results/` for real-data evals.
 
 ## Performance
 

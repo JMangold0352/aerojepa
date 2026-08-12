@@ -157,7 +157,10 @@ def standardize_clip(
     cap = cv2.VideoCapture(str(src_path))
     src_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     src_fps = float(cap.get(cv2.CAP_PROP_FPS)) or float(target_fps)
-    indices = _select_indices(src_frames, src_fps, target_fps, max_seconds)
+    # Optional Rust select_indices; falls back to Python/OpenCV.
+    from aerojepa.data.preprocess_backend import select_indices_native_or_python
+
+    indices = select_indices_native_or_python(src_frames, src_fps, target_fps, max_seconds)
     index_set = set(indices)
 
     # Single sequential pass; keep frames whose index was selected (indices are
@@ -218,12 +221,20 @@ def preprocess_directory(config: PreprocessConfig) -> list[ClipInfo]:
 
     Output clips are renamed ``<prefix>_000.mp4``, ``<prefix>_001.mp4``, ... so a
     training folder stays tidy regardless of messy source names.
+
+    Frame-index selection may use the optional Rust accelerator when installed
+    (see ``docs/NATIVE_PREPROCESS.md``); decode/encode still use OpenCV.
     """
+    from aerojepa.data.preprocess_backend import active_backend
+
     in_dir = Path(config.input_dir)
     out_dir = Path(config.output_dir)
     sources = sorted(p for p in in_dir.glob("*") if p.suffix.lower() in VIDEO_SUFFIXES)
     if not sources:
         raise FileNotFoundError(f"No videos found in {in_dir}")
+
+    backend = active_backend()
+    print(f"  preprocess backend: {backend} (frame index select; decode=opencv)")
 
     results: list[ClipInfo] = []
     for i, src in enumerate(sources):

@@ -1,14 +1,14 @@
 # Ablation summary
 
 Source: `results/ablations/summary.json`
-Mode: **quick** · Epochs: **20**
+Mode: **full** · Epochs: **100**
 
 | Variant | Objective | Latent cosine | Smooth-L1 | Rollout @ last h |
 | --- | --- | ---: | ---: | ---: |
-| baseline | masked | 0.9933 | 0.0069 | 0.9900 |
-| loops_2 | masked | 0.9927 | 0.0075 | 0.9893 |
-| loops_3 | masked | 0.9931 | 0.0071 | 0.9898 |
-| world_model | future | 0.9943 | 0.0059 | 0.9923 |
+| baseline | masked | 0.9533 | 0.0417 | 0.9171 |
+| loops_2 | masked | 0.9600 | 0.0359 | 0.9249 |
+| loops_3 | masked | 0.9628 | 0.0334 | 0.9279 |
+| world_model | future | 0.9813 | 0.0174 | 0.9730 |
 
 ## Figures
 

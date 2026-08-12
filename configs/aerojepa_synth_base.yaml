@@ -9,7 +9,7 @@ objective: masked          # "masked" (representation learning) or "future" (wor
 
 data:
   source: synthetic        # "synthetic" (built-in) or "video" (folder of clips)
-  img_size: 64
+  img_size: 64             # model input; on-disk Wilds clips may be 128 (resized here)
   patch_size: 8            # -> 8x8 = 64 spatial patches per frame
   num_frames: 8
   in_chans: 3

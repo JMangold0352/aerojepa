@@ -1,0 +1,83 @@
+{
+  "task": "hover",
+  "seed": 0,
+  "max_steps": 120,
+  "world_checkpoint": "checkpoints/action_conditioned/latest.pt",
+  "residual_checkpoint": "checkpoints/action_residual/best.pt",
+  "residual_params": 3700,
+  "before": {
+    "planner": {
+      "steps": 120,
+      "total_reward": 199.95545821899344,
+      "altitude_mae": 0.21209224984665548,
+      "xy_drift": 1.0281745195388794,
+      "max_xy_drift": 1.0281745195388794,
+      "survived": true,
+      "final_goal_distance": 1.0594133138656616,
+      "min_goal_distance": 0.0,
+      "reached": null
+    },
+    "hover": {
+      "steps": 120,
+      "total_reward": 280.802356160764,
+      "altitude_mae": 0.21634261568715749,
+      "xy_drift": 0.0,
+      "max_xy_drift": 0.0,
+      "survived": true,
+      "final_goal_distance": 0.2592089772224426,
+      "min_goal_distance": 0.0,
+      "reached": null
+    },
+    "random": {
+      "steps": 120,
+      "total_reward": -178.0391258779665,
+      "altitude_mae": 0.41808113652812545,
+      "xy_drift": 4.06259298324585,
+      "max_xy_drift": 4.06259298324585,
+      "survived": true,
+      "final_goal_distance": 4.1175713539123535,
+      "min_goal_distance": 0.0,
+      "reached": null
+    }
+  },
+  "after": {
+    "planner": {
+      "steps": 120,
+      "total_reward": 207.8496894078079,
+      "altitude_mae": 0.21259246187761796,
+      "xy_drift": 0.9518004655838013,
+      "max_xy_drift": 0.9518004655838013,
+      "survived": true,
+      "final_goal_distance": 0.9858047366142273,
+      "min_goal_distance": 0.0,
+      "reached": null
+    },
+    "hover": {
+      "steps": 120,
+      "total_reward": 280.802356160764,
+      "altitude_mae": 0.21634261568715749,
+      "xy_drift": 0.0,
+      "max_xy_drift": 0.0,
+      "survived": true,
+      "final_goal_distance": 0.2592089772224426,
+      "min_goal_distance": 0.0,
+      "reached": null
+    },
+    "random": {
+      "steps": 120,
+      "total_reward": -178.0391258779665,
+      "altitude_mae": 0.41808113652812545,
+      "xy_drift": 4.06259298324585,
+      "max_xy_drift": 4.06259298324585,
+      "survived": true,
+      "final_goal_distance": 4.1175713539123535,
+      "min_goal_distance": 0.0,
+      "reached": null
+    }
+  },
+  "planner_delta": {
+    "reward": 7.8942311888144445,
+    "altitude_mae": 0.0005002120309624825,
+    "xy_drift": -0.07637405395507812
+  }
+}

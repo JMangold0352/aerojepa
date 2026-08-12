@@ -8,12 +8,14 @@
 [![PyTorch 2.2+](https://img.shields.io/badge/PyTorch-2.2+-ee4c2c?logo=pytorch&logoColor=white)](pyproject.toml)
 [![Gradio demo](https://img.shields.io/badge/demo-Gradio-f97316?logo=gradio&logoColor=white)](app.py)
 [![Params ~3–5M](https://img.shields.io/badge/params-~3--5M-54A24B)](configs/aerojepa_synth_base.yaml)
-[![Best real cosine 0.994](https://img.shields.io/badge/real%20footage-latent%200.994-54A24B)](results/real_finetune_fast_eval.json)
+[![Best real cosine 0.974](https://img.shields.io/badge/real%20footage-latent%200.974-54A24B)](results/real_finetune_fast_eval.json)
 [![License: research](https://img.shields.io/badge/license-research%20%2F%20educational-lightgrey)](#license)
 
 *Self-supervised video encoders · latent future prediction · adaptive-depth recurrence · sim-to-real on aerial footage · latent-space planning*
 
-**Current best checkpoint:** `checkpoints/real_finetune_fast/latest.pt` — **0.994** latent cosine · **0.984** rollout @ 4 frames · **+0.019** sim-to-real gap on held-out Parrot clips · latent planner coherence **1.000** on hover / waypoint tasks.
+**Representation (unconditioned):** `checkpoints/real_finetune_fast/latest.pt` — protocol-B real latent cosine **0.974** · rollout @ h=4 **0.984** · gap **+0.019** ([`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md)).
+
+**Closed-loop stack:** `checkpoints/action_conditioned_wilds/latest.pt` + `checkpoints/action_residual_wilds/best.pt` — gradient planner, `latent_smooth=0.05` (wind / turn / recover / hover cleared on 3-seed table).
 
 [Quickstart](#installation--quickstart) ·
 [Results](#key-results) ·
@@ -22,6 +24,7 @@
 [Demo](#gradio-demo) ·
 [Model cards](model_cards/) ·
 [Report](REPORT.md) ·
+[Eval protocol](docs/EVAL_PROTOCOL.md) ·
 [Reproduce](REPRODUCTION.md)
 
 Parent project: [**looped-jepa**](https://github.com/JMangold0352/looped-jepa)
@@ -30,13 +33,16 @@ Parent project: [**looped-jepa**](https://github.com/JMangold0352/looped-jepa)
 
 ---
 
-## Hook
+## Overview
 
-**Video-JEPA** learns to predict the *latent structure* of what comes next in a drone clip — not pixels, not contrastive negatives. AeroJEPA asks the autonomy-relevant question:
+AeroJEPA is a compact video-JEPA world model for drones. It extends the
+[looped-jepa](https://github.com/JMangold0352/looped-jepa) recurrent predictor
+from single images into space and time: predict future latents from short
+egocentric clips, optionally conditioned on 6-DoF motion.
 
-> *Can a weight-shared recurrent predictor, with a learned exit gate, turn short egocentric video into a forward world model suitable for planning under motion — and transfer that model from synthetic pretraining to real aerial footage?*
-
-This repository ships a full research stack: four synthetic model variants, a procedural benchmark (**zero downloads**), real-data ingestion (The Wilds Drones + personal Tello workflow), ablation and visualization pipelines, an interactive Gradio demo, and a **latent-space planner**. The encoder stays under **~5M parameters** — sized for edge iteration, not datacenter scale.
+The repo includes synthetic training (no downloads), Wilds / Tello real-data
+paths, eval and visualization scripts, a Gradio demo, and a PyFlyt latent
+planner. Models stay around **3–5M** parameters.
 
 ---
 
@@ -44,19 +50,31 @@ This repository ships a full research stack: four synthetic model variants, a pr
 
 Official metric: **latent cosine similarity** between the predictor and EMA teacher on held-out clips (higher is better). JSON metrics: [`results/`](results/).
 
-### Best model — real aerial footage (`real_finetune_fast`)
+### Best representation — real aerial footage (`real_finetune_fast`)
 
-Fine-tuned from synthetic pretrain on **15 Parrot clips** (The Wilds Drones, 128×128, 10 epochs, MPS). Checkpoint: [`checkpoints/real_finetune_fast/latest.pt`](checkpoints/real_finetune_fast/latest.pt).
+Fine-tuned from synthetic pretrain on **15 Parrot clips** (The Wilds Drones; **128×128 on disk**, **64×64 model input**, 10 epochs, MPS). Checkpoint: [`checkpoints/real_finetune_fast/latest.pt`](checkpoints/real_finetune_fast/latest.pt).
 
 | Metric | Value | Notes |
 | --- | ---: | --- |
-| **Latent cosine** | **0.994** | Validation on preprocessed Wilds clips |
-| **Rollout @ h=4** | **0.984** | Flat over horizon — healthy world model |
-| **Per-loop refinement** | **0.83 → 0.96 → 0.99** | Exit gate expected depth **1.75** loops |
-| **Sim-to-real gap** | **+0.019** | Held-out real vs in-val synthetic reference |
-| **Planner coherence** | **1.000** | Hover + waypoint on real-data checkpoint |
+| **Latent cosine (real, protocol B)** | **0.974** | `scripts/evaluate_real.py` on `data/flights_128` |
+| **Latent cosine (synthetic)** | **0.994** | Same script, synthetic branch |
+| **Real rollout @ h=4** | **0.961** | Flat over horizon |
+| **Sim-to-real gap** | **+0.019** | synth − real cosine |
+| **Planner coherence** | **1.000** | Open-loop hover / waypoint on this checkpoint |
 
-Full eval: [`results/real_finetune_fast_eval.json`](results/real_finetune_fast_eval.json) · Figures: [`visualizations/figures/real_finetune_fast/`](visualizations/figures/real_finetune_fast/)
+Full eval: [`results/real_finetune_fast_eval.json`](results/real_finetune_fast_eval.json) · Figures: [`visualizations/figures/real_finetune_fast/`](visualizations/figures/real_finetune_fast/) · Protocol: [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md)
+
+### Closed-loop stack (action-conditioned Wilds + residual)
+
+Use this for PyFlyt demos, not the unconditioned representation checkpoint.
+
+| Piece | Path |
+| --- | --- |
+| World model | `checkpoints/action_conditioned_wilds/latest.pt` |
+| Residual | `checkpoints/action_residual_wilds/best.pt` |
+| Planner | `--planner gradient --latent-smooth 0.05` |
+
+Protocol-B real cosine for the WM alone is **0.957** (weaker than `real_finetune_fast`; keeps 6-DoF conditioning). Multi-seed table: [`visualizations/closed_loop/full_stack_compare_wilds.json`](visualizations/closed_loop/full_stack_compare_wilds.json). Card: [action Wilds](model_cards/aerojepa_action_wilds.md).
 
 ### Synthetic pretrain (100 epochs, procedural benchmark)
 
@@ -72,16 +90,16 @@ Full eval: [`results/real_finetune_fast_eval.json`](results/real_finetune_fast_e
 - **Recurrence helps on video:** looped beats feed-forward baseline by **+0.7 pp** latent cosine.
 - **Future objective learns:** rollout stays **flat ~0.97** over a 4-frame horizon.
 - **Refinement pays off:** per-loop cosine **0.87 → 0.96 → 0.98**; exit gate averages **1.75** steps.
-- **Action conditioning** ties the unconditioned world model on synthetic data; real telemetry is the honest test.
+- **Action conditioning** is roughly tied with the unconditioned world model on synthetic data; real telemetry is the better test.
 
-### Ablation suite (20 epochs, controlled variants)
+### Ablation suite (100 epochs, publication)
 
-| Variant | Latent cosine | Rollout @ h=4 | Per-loop gain |
+| Variant | Latent cosine | Rollout @ h=4 | Per-loop (1→last) |
 | --- | ---: | ---: | --- |
-| baseline | 0.993 | 0.990 | — |
-| loops_2 | 0.993 | 0.989 | +0.025 |
-| loops_3 | 0.993 | 0.990 | +0.112 |
-| **world_model** | **0.994** | **0.992** | +0.124 |
+| baseline | 0.953 | 0.917 | — |
+| loops_2 | 0.960 | 0.925 | 0.941 → 0.960 |
+| loops_3 | 0.963 | 0.928 | 0.841 → 0.962 |
+| **world_model** | **0.981** | **0.973** | 0.869 → 0.981 |
 
 Details: [`results/ablations/summary.json`](results/ablations/summary.json) · [REPORT.md](REPORT.md)
 
@@ -105,7 +123,7 @@ flowchart LR
 | **2. Wilds** | [The Wilds Drones](https://huggingface.co/datasets/imageomics/thewilds_drones) (Parrot MP4 + telemetry) | `aerojepa_finetune_fast.yaml` | `checkpoints/real_finetune_fast/latest.pt` |
 | **3. Tello** | Self-captured sessions (hover, forward, turn, altitude) | `aerojepa_finetune_tello.yaml` | `checkpoints/real_finetune_tello/latest.pt` |
 
-**Measured transfer (Wilds stage):** latent cosine **0.994** on validation clips; **0.974** on held-out real evaluation; gap **+0.019** — small enough to show the world model generalizes, large enough to quantify what personal fine-tuning should close.
+**Measured transfer (Wilds stage, protocol B):** real latent cosine **0.974**, synthetic **0.994**, gap **+0.019** (`docs/EVAL_PROTOCOL.md`).
 
 ```bash
 # Report sim-to-real gap for any checkpoint
@@ -288,9 +306,15 @@ Ingest public aerial data, preprocess, fine-tune from synthetic pretrain:
 # Convert HuggingFace Wilds clips → data/flights/
 python scripts/convert_wilds.py --input-dir data/raw/thewilds --output-dir data/flights
 
-# Standardize to 128×128 / 15 fps
+# Standardize to 128×128 on disk / 15 fps (model still trains at img_size=64)
 python scripts/preprocess_real.py --input-dir data/flights \
   --output-dir data/flights_128 --target-fps 15 --max-seconds 60 --square --resize 128
+
+# Optional: fast frame-index selection via Rust (OpenCV still decodes/encodes)
+#   curl https://sh.rustup.rs -sSf | sh && source "$HOME/.cargo/env"
+#   uv pip install maturin && cd native/aerojepa-preprocess && maturin develop --release
+#   python scripts/preprocess_real.py ... --backend auto   # uses Rust when installed
+# See docs/NATIVE_PREPROCESS.md
 
 # Fine-tune (~4 min on MPS for 10 epochs)
 python scripts/train.py --config configs/aerojepa_finetune_fast.yaml --device mps
@@ -339,22 +363,23 @@ python app.py --checkpoint checkpoints/world_model/latest.pt
 | --- | --- |
 | **Local** | [`app.py`](app.py) · [`demo/README.md`](demo/README.md) |
 | **Planner CLI** | `python scripts/run_planner_demo.py --checkpoint checkpoints/real_finetune_fast/latest.pt --task waypoint` |
+| **Closed-loop (default stack)** | `python scripts/run_closed_loop_demo.py --checkpoint checkpoints/action_conditioned_wilds/latest.pt --residual-checkpoint checkpoints/action_residual_wilds/best.pt --planner gradient --latent-smooth 0.05 --task hover` |
+| **Closed-loop waypoint** | same stack, `--task waypoint --goal 0.6 0 0` |
+| **Closed-loop recover** | same stack, `--task recover` |
+| **Demo reel** | `python scripts/stitch_closed_loop_demo.py --include-random` → `docs/gallery/closed_loop_demo_reel.gif` |
 
 ---
 
-## Defense, autonomy & edge AI
+## Why the small model
 
-The core constraints in this project — compact models, label efficiency, adaptive compute, and interpretable inference — align directly with autonomous and defense perception systems.
+Design targets that show up throughout the stack:
 
-| Theme | Connection |
-| --- | --- |
-| **Predictive autonomy** | Forward world model anticipates scene structure ahead of the aircraft — foundation for obstacle anticipation |
-| **Sim-to-real pipeline** | Synthetic pretrain → public Parrot fine-tune → personal Tello adaptation, with measured gap at each stage |
-| **Model-based control** | Latent planner imagines maneuvers before execution; action conditioning ready for real 6-DoF telemetry |
-| **Label efficiency** | Self-supervised pretraining on unlabeled flight video; fine-tune from a small clip corpus |
-| **Adaptive compute** | Exit gate spends recurrent depth only on hard moments — relevant for latency-budgeted edge inference |
-| **Interpretability** | Rollout curves, per-loop refinement, exit-depth distributions, attention-over-time |
-| **Edge readiness** | **~3–5M params** targets embedded inference after mission-specific adaptation |
+- Forward prediction in latent space (anticipate, don’t just classify)
+- Synthetic → Wilds → Tello transfer, with a measured gap at each step
+- Latent planning before execution (research demos in PyFlyt)
+- Self-supervised pretrain; fine-tune from a small clip set
+- Exit gate spends compute on hard moments only
+- ~3–5M params so experiments stay cheap on a laptop
 
 This is research code, not a deployed flight system.
 
@@ -389,29 +414,29 @@ Per-model documentation: architecture, training recipe, metrics, limitations, an
 | --- | --- |
 | [**aerojepa_base**](model_cards/aerojepa_base.md) | Baseline + looped masked objective, recurrence gains |
 | [**aerojepa_world_model**](model_cards/aerojepa_world_model.md) | Future-frame objective, rollout, action conditioning |
+| [**aerojepa_real_finetune**](model_cards/aerojepa_real_finetune.md) | Unconditioned Wilds fine-tune (`real_finetune_fast`) |
+| [**aerojepa_action_wilds**](model_cards/aerojepa_action_wilds.md) | Action-conditioned Wilds + residual closed-loop stack |
 | [**Index**](model_cards/README.md) | All cards |
 
 ---
 
-## Limitations & next steps
-
-**Current limitations (stated plainly)**
+## Limitations
 
 | Limitation | Status |
 | --- | --- |
-| **No closed-loop flight** | Research code, not a flight controller; PyFlyt hooks are scaffolded |
-| **Action conditioning** did not separate on synthetic data | Needs reliable real 6-DoF telemetry |
-| **Tello fine-tune** | Workflow ready; personal footage not yet in published checkpoint |
-| **Checkpoints** | Local artifacts; not shipped via git (see [REPRODUCTION.md](REPRODUCTION.md)) |
+| Closed-loop is a research demo | PyFlyt + heuristic map + small residual; not a flight controller |
+| Action-conditioned Wilds vs unconditioned | ~0.957 vs ~0.974 real cosine (protocol B); action model kept for planning |
+| Tello fine-tune | Workflow ready; no personal footage on disk yet |
+| Checkpoints | Local artifacts; not in git ([REPRODUCTION.md](REPRODUCTION.md)) |
+| Onboard / ROS / motor-command hardware | Not in scope for now |
 
-**Next steps**
+**Near term**
 
-1. **Tello sessions** — `./scripts/tello_workflow.sh all` → close the personal-data loop
-2. **Closed-loop sim** — wire [`src/aerojepa/sim/planner.py`](src/aerojepa/sim/planner.py) into PyFlyt hover / waypoint tasks
-3. **Transfer curve** — fine-tune on 1/5/15 clips; plot gap closing for README
-4. **Publication ablation** — `python scripts/run_ablations.py --mode full`
+1. Physics collaboration on AeroProber — start from [`research/prober/note.md`](research/prober/note.md)
+2. Tello sessions when you can capture (`./scripts/tello_workflow.sh`)
+3. Keep the default closed-loop stack on **v1** Wilds action + residual (v2 regressed)
 
-Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md) · Experiment log: [`REPORT.md`](REPORT.md)
+Experiment log: [`REPORT.md`](REPORT.md)
 
 ---
 
@@ -426,7 +451,7 @@ aerojepa/
 ├── app.py · demo/      Gradio demo + latent planner tab
 ├── model_cards/        per-model documentation
 ├── results/            JSON metrics (tracked); checkpoints/ runs/ data/ gitignored
-└── docs/               technical report · roadmap
+└── docs/               technical notes · gallery
 ```
 
 ---
@@ -451,11 +476,12 @@ aerojepa/
 
 | Doc | Contents |
 | --- | --- |
-| [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) | Architecture and design rationale |
-| [data/README.md](data/README.md) | Real footage layout, Tello safety, preprocess |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | Five-phase plan |
+| [docs/NATIVE_PREPROCESS.md](docs/NATIVE_PREPROCESS.md) | Optional Rust frame-index helper (deferred beyond Phase A) |
+| [docs/EVAL_PROTOCOL.md](docs/EVAL_PROTOCOL.md) | How published metrics are produced |
+| [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) | Architecture and design notes |
+| [data/README.md](data/README.md) | Real footage layout, Tello, preprocess |
 | [REPRODUCTION.md](REPRODUCTION.md) | Reproduce from scratch |
-| [REPORT.md](REPORT.md) | Experiment log and honest negatives |
+| [REPORT.md](REPORT.md) | Experiment log |
 | [results/README.md](results/README.md) | Metrics index |
 | [scripts/README.md](scripts/README.md) · [visualizations/README.md](visualizations/README.md) · [demo/README.md](demo/README.md) | Component guides |
 

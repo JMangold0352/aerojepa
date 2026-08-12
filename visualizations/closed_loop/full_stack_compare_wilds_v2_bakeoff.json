@@ -1,0 +1,706 @@
+{
+  "world_checkpoint": "checkpoints/action_conditioned_wilds_v2/latest.pt",
+  "residual_checkpoint": "checkpoints/action_residual_wilds_v2/best.pt",
+  "residual_params": 3700,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "latent_smooth": 0.05,
+  "tasks": {
+    "wind_gust": {
+      "per_seed": {
+        "baseline": [
+          {
+            "planner_mode": "shooting",
+            "steps": 200,
+            "survived": true,
+            "total_reward": 254.85,
+            "altitude_mae": 0.229,
+            "xy_drift": 1.536,
+            "max_xy_drift": 1.536,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "excessive_drift",
+            "failure_detail": "max_xy=1.54 m under 2.0 m/s wind (limit 1.5 m)",
+            "mean_plan_cost": 0.0022
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 200,
+            "survived": true,
+            "total_reward": 176.95,
+            "altitude_mae": 0.23,
+            "xy_drift": 2.146,
+            "max_xy_drift": 2.146,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "excessive_drift",
+            "failure_detail": "max_xy=2.15 m under 2.0 m/s wind (limit 1.5 m)",
+            "mean_plan_cost": 0.0021
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 200,
+            "survived": true,
+            "total_reward": 239.55,
+            "altitude_mae": 0.231,
+            "xy_drift": 1.832,
+            "max_xy_drift": 1.832,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "excessive_drift",
+            "failure_detail": "max_xy=1.83 m under 2.0 m/s wind (limit 1.5 m)",
+            "mean_plan_cost": 0.0021
+          }
+        ],
+        "full_stack": [
+          {
+            "planner_mode": "gradient",
+            "steps": 200,
+            "survived": true,
+            "total_reward": 389.58,
+            "altitude_mae": 0.259,
+            "xy_drift": 0.24,
+            "max_xy_drift": 0.24,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "held station under 2.0 m/s wind (max_xy=0.24 m)",
+            "mean_plan_cost": 1.4695
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 200,
+            "survived": true,
+            "total_reward": 380.05,
+            "altitude_mae": 0.267,
+            "xy_drift": 0.318,
+            "max_xy_drift": 0.318,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "held station under 2.0 m/s wind (max_xy=0.32 m)",
+            "mean_plan_cost": 1.4638
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 200,
+            "survived": true,
+            "total_reward": 369.83,
+            "altitude_mae": 0.266,
+            "xy_drift": 0.176,
+            "max_xy_drift": 0.267,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "held station under 2.0 m/s wind (max_xy=0.27 m)",
+            "mean_plan_cost": 1.6113
+          }
+        ],
+        "hover": [
+          {
+            "planner_mode": null,
+            "steps": 200,
+            "survived": true,
+            "total_reward": 379.65,
+            "altitude_mae": 0.233,
+            "xy_drift": 0.792,
+            "max_xy_drift": 0.792,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "held station under 2.0 m/s wind (max_xy=0.79 m)",
+            "mean_plan_cost": null
+          },
+          {
+            "planner_mode": null,
+            "steps": 200,
+            "survived": true,
+            "total_reward": 380.19,
+            "altitude_mae": 0.232,
+            "xy_drift": 0.792,
+            "max_xy_drift": 0.792,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "held station under 2.0 m/s wind (max_xy=0.79 m)",
+            "mean_plan_cost": null
+          },
+          {
+            "planner_mode": null,
+            "steps": 200,
+            "survived": true,
+            "total_reward": 379.87,
+            "altitude_mae": 0.232,
+            "xy_drift": 0.792,
+            "max_xy_drift": 0.792,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "held station under 2.0 m/s wind (max_xy=0.79 m)",
+            "mean_plan_cost": null
+          }
+        ]
+      },
+      "aggregate": {
+        "baseline": {
+          "n_seeds": 3,
+          "success_rate": 0.0,
+          "mean_xy_drift": 1.838,
+          "mean_max_xy_drift": 1.838
+        },
+        "full_stack": {
+          "n_seeds": 3,
+          "success_rate": 1.0,
+          "mean_xy_drift": 0.245,
+          "mean_max_xy_drift": 0.275
+        },
+        "hover": {
+          "n_seeds": 3,
+          "success_rate": 1.0,
+          "mean_xy_drift": 0.792,
+          "mean_max_xy_drift": 0.792
+        }
+      }
+    },
+    "aggressive_turn": {
+      "per_seed": {
+        "baseline": [
+          {
+            "planner_mode": "shooting",
+            "steps": 30,
+            "survived": true,
+            "total_reward": 56.29,
+            "altitude_mae": 0.073,
+            "xy_drift": 0.386,
+            "max_xy_drift": 0.386,
+            "reached": true,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 2,
+            "waypoints_total": 2,
+            "failure_mode": "ok",
+            "failure_detail": "cleared 2/2 legs of the L-turn",
+            "mean_plan_cost": 0.0011
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 31,
+            "survived": true,
+            "total_reward": 56.84,
+            "altitude_mae": 0.073,
+            "xy_drift": 0.411,
+            "max_xy_drift": 0.411,
+            "reached": true,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 2,
+            "waypoints_total": 2,
+            "failure_mode": "ok",
+            "failure_detail": "cleared 2/2 legs of the L-turn",
+            "mean_plan_cost": 0.0017
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 101,
+            "survived": false,
+            "total_reward": -471.95,
+            "altitude_mae": 0.157,
+            "xy_drift": 2.611,
+            "max_xy_drift": 3.144,
+            "reached": false,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 0,
+            "waypoints_total": 2,
+            "failure_mode": "crash",
+            "failure_detail": "ground contact (z=0.05)",
+            "mean_plan_cost": 0.4279
+          }
+        ],
+        "full_stack": [
+          {
+            "planner_mode": "gradient",
+            "steps": 96,
+            "survived": true,
+            "total_reward": 158.01,
+            "altitude_mae": 0.14,
+            "xy_drift": 0.437,
+            "max_xy_drift": 0.437,
+            "reached": true,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 2,
+            "waypoints_total": 2,
+            "failure_mode": "ok",
+            "failure_detail": "cleared 2/2 legs of the L-turn",
+            "mean_plan_cost": 3.1427
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 214,
+            "survived": false,
+            "total_reward": -180.16,
+            "altitude_mae": 0.182,
+            "xy_drift": 0.611,
+            "max_xy_drift": 1.558,
+            "reached": false,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 1,
+            "waypoints_total": 2,
+            "failure_mode": "crash",
+            "failure_detail": "ground contact (z=0.06)",
+            "mean_plan_cost": 49.6192
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 230,
+            "survived": false,
+            "total_reward": -202.5,
+            "altitude_mae": 0.202,
+            "xy_drift": 1.291,
+            "max_xy_drift": 1.694,
+            "reached": false,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 0,
+            "waypoints_total": 2,
+            "failure_mode": "crash",
+            "failure_detail": "ground contact (z=0.03)",
+            "mean_plan_cost": 75.424
+          }
+        ],
+        "hover": null
+      },
+      "aggregate": {
+        "baseline": {
+          "n_seeds": 3,
+          "success_rate": 0.667,
+          "mean_xy_drift": 1.136,
+          "mean_max_xy_drift": 1.314,
+          "mean_legs": 1.33
+        },
+        "full_stack": {
+          "n_seeds": 3,
+          "success_rate": 0.333,
+          "mean_xy_drift": 0.78,
+          "mean_max_xy_drift": 1.23,
+          "mean_legs": 1.0
+        },
+        "hover": null
+      }
+    },
+    "recover": {
+      "per_seed": {
+        "baseline": [
+          {
+            "planner_mode": "shooting",
+            "steps": 104,
+            "survived": true,
+            "total_reward": 118.09,
+            "altitude_mae": 0.167,
+            "xy_drift": 0.367,
+            "max_xy_drift": 0.906,
+            "reached": null,
+            "recovered": true,
+            "recovery_steps": 41,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "recovered after kick",
+            "mean_plan_cost": 0.0012
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 105,
+            "survived": true,
+            "total_reward": 96.66,
+            "altitude_mae": 0.16,
+            "xy_drift": 0.348,
+            "max_xy_drift": 1.036,
+            "reached": null,
+            "recovered": true,
+            "recovery_steps": 42,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "recovered after kick",
+            "mean_plan_cost": 0.0014
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 105,
+            "survived": true,
+            "total_reward": 102.04,
+            "altitude_mae": 0.162,
+            "xy_drift": 0.362,
+            "max_xy_drift": 1.01,
+            "reached": null,
+            "recovered": true,
+            "recovery_steps": 42,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "recovered after kick",
+            "mean_plan_cost": 0.0024
+          }
+        ],
+        "full_stack": [
+          {
+            "planner_mode": "gradient",
+            "steps": 105,
+            "survived": true,
+            "total_reward": 119.31,
+            "altitude_mae": 0.156,
+            "xy_drift": 0.371,
+            "max_xy_drift": 0.943,
+            "reached": null,
+            "recovered": true,
+            "recovery_steps": 42,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "recovered after kick",
+            "mean_plan_cost": 2.7191
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 104,
+            "survived": true,
+            "total_reward": 124.61,
+            "altitude_mae": 0.17,
+            "xy_drift": 0.39,
+            "max_xy_drift": 0.89,
+            "reached": null,
+            "recovered": true,
+            "recovery_steps": 41,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "recovered after kick",
+            "mean_plan_cost": 2.9206
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 105,
+            "survived": true,
+            "total_reward": 121.2,
+            "altitude_mae": 0.166,
+            "xy_drift": 0.354,
+            "max_xy_drift": 0.923,
+            "reached": null,
+            "recovered": true,
+            "recovery_steps": 42,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "recovered after kick",
+            "mean_plan_cost": 2.8835
+          }
+        ],
+        "hover": null
+      },
+      "aggregate": {
+        "baseline": {
+          "n_seeds": 3,
+          "success_rate": 1.0,
+          "mean_xy_drift": 0.359,
+          "mean_max_xy_drift": 0.984,
+          "mean_recovery_steps": 41.7
+        },
+        "full_stack": {
+          "n_seeds": 3,
+          "success_rate": 1.0,
+          "mean_xy_drift": 0.372,
+          "mean_max_xy_drift": 0.919,
+          "mean_recovery_steps": 41.7
+        },
+        "hover": null
+      }
+    },
+    "hover": {
+      "per_seed": {
+        "baseline": [
+          {
+            "planner_mode": "shooting",
+            "steps": 120,
+            "survived": true,
+            "total_reward": 231.65,
+            "altitude_mae": 0.214,
+            "xy_drift": 0.691,
+            "max_xy_drift": 0.691,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "hover hold",
+            "mean_plan_cost": 0.0022
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 120,
+            "survived": true,
+            "total_reward": 258.83,
+            "altitude_mae": 0.216,
+            "xy_drift": 0.405,
+            "max_xy_drift": 0.405,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "hover hold",
+            "mean_plan_cost": 0.0023
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 120,
+            "survived": true,
+            "total_reward": 261.76,
+            "altitude_mae": 0.218,
+            "xy_drift": 0.374,
+            "max_xy_drift": 0.374,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "hover hold",
+            "mean_plan_cost": 0.0022
+          }
+        ],
+        "full_stack": [
+          {
+            "planner_mode": "gradient",
+            "steps": 120,
+            "survived": true,
+            "total_reward": 257.55,
+            "altitude_mae": 0.228,
+            "xy_drift": 0.067,
+            "max_xy_drift": 0.067,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "hover hold",
+            "mean_plan_cost": 1.2256
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 120,
+            "survived": true,
+            "total_reward": 261.65,
+            "altitude_mae": 0.238,
+            "xy_drift": 0.036,
+            "max_xy_drift": 0.042,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "hover hold",
+            "mean_plan_cost": 1.2794
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 120,
+            "survived": true,
+            "total_reward": 252.66,
+            "altitude_mae": 0.241,
+            "xy_drift": 0.073,
+            "max_xy_drift": 0.073,
+            "reached": null,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": null,
+            "waypoints_total": null,
+            "failure_mode": "ok",
+            "failure_detail": "hover hold",
+            "mean_plan_cost": 1.2696
+          }
+        ],
+        "hover": null
+      },
+      "aggregate": {
+        "baseline": {
+          "n_seeds": 3,
+          "success_rate": 1.0,
+          "mean_xy_drift": 0.49,
+          "mean_max_xy_drift": 0.49
+        },
+        "full_stack": {
+          "n_seeds": 3,
+          "success_rate": 1.0,
+          "mean_xy_drift": 0.059,
+          "mean_max_xy_drift": 0.061
+        },
+        "hover": null
+      }
+    },
+    "aggressive_turn_hard": {
+      "per_seed": {
+        "baseline": [
+          {
+            "planner_mode": "shooting",
+            "steps": 101,
+            "survived": false,
+            "total_reward": -508.31,
+            "altitude_mae": 0.132,
+            "xy_drift": 2.524,
+            "max_xy_drift": 3.337,
+            "reached": false,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 1,
+            "waypoints_total": 2,
+            "failure_mode": "crash",
+            "failure_detail": "ground contact (z=0.04)",
+            "mean_plan_cost": 0.1823
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 102,
+            "survived": false,
+            "total_reward": -577.14,
+            "altitude_mae": 0.141,
+            "xy_drift": 3.032,
+            "max_xy_drift": 3.695,
+            "reached": false,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 1,
+            "waypoints_total": 2,
+            "failure_mode": "crash",
+            "failure_detail": "ground contact (z=0.04)",
+            "mean_plan_cost": 0.3783
+          },
+          {
+            "planner_mode": "shooting",
+            "steps": 102,
+            "survived": false,
+            "total_reward": -551.76,
+            "altitude_mae": 0.141,
+            "xy_drift": 2.833,
+            "max_xy_drift": 3.524,
+            "reached": false,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 1,
+            "waypoints_total": 2,
+            "failure_mode": "crash",
+            "failure_detail": "ground contact (z=0.04)",
+            "mean_plan_cost": 0.2605
+          }
+        ],
+        "full_stack": [
+          {
+            "planner_mode": "gradient",
+            "steps": 112,
+            "survived": true,
+            "total_reward": 68.89,
+            "altitude_mae": 0.114,
+            "xy_drift": 0.813,
+            "max_xy_drift": 0.935,
+            "reached": true,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 2,
+            "waypoints_total": 2,
+            "failure_mode": "ok",
+            "failure_detail": "cleared 2/2 legs of the L-turn",
+            "mean_plan_cost": 6.2837
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 111,
+            "survived": true,
+            "total_reward": 56.83,
+            "altitude_mae": 0.116,
+            "xy_drift": 0.868,
+            "max_xy_drift": 1.014,
+            "reached": true,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 2,
+            "waypoints_total": 2,
+            "failure_mode": "ok",
+            "failure_detail": "cleared 2/2 legs of the L-turn",
+            "mean_plan_cost": 7.0663
+          },
+          {
+            "planner_mode": "gradient",
+            "steps": 111,
+            "survived": true,
+            "total_reward": 59.44,
+            "altitude_mae": 0.116,
+            "xy_drift": 0.861,
+            "max_xy_drift": 0.998,
+            "reached": true,
+            "recovered": null,
+            "recovery_steps": null,
+            "waypoints_reached": 2,
+            "waypoints_total": 2,
+            "failure_mode": "ok",
+            "failure_detail": "cleared 2/2 legs of the L-turn",
+            "mean_plan_cost": 6.7695
+          }
+        ],
+        "hover": null
+      },
+      "aggregate": {
+        "baseline": {
+          "n_seeds": 3,
+          "success_rate": 0.0,
+          "mean_xy_drift": 2.796,
+          "mean_max_xy_drift": 3.519,
+          "mean_legs": 1.0
+        },
+        "full_stack": {
+          "n_seeds": 3,
+          "success_rate": 1.0,
+          "mean_xy_drift": 0.847,
+          "mean_max_xy_drift": 0.982,
+          "mean_legs": 2.0
+        },
+        "hover": null
+      }
+    }
+  }
+}

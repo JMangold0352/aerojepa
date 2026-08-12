@@ -5,15 +5,10 @@ correctness, reproducibility, and readable code that a non-specialist can follow
 
 ## Principles
 
-- **Config-driven.** New behavior should be reachable from a YAML config that
-  inherits the base recipe via `_base_`. Avoid hidden defaults in code.
-- **Honest science.** Report negative results. Do not tune the evaluation to
-  flatter a method. Keep the baseline and the variant on the same recipe so
-  comparisons are fair.
-- **Readable voice.** Docstrings and comments explain *why* (intent, trade-offs,
-  constraints), never narrate the obvious. Keep prose accessible; a smart reader
-  who is not a deep-learning specialist should be able to follow.
-- **No emojis** in code, comments, or docs.
+- Prefer config-driven behavior (YAML with `_base_` inheritance) over hidden defaults.
+- Keep comparisons fair: same recipe for baseline and variant.
+- Comments and docs should explain intent and trade-offs, not narrate the code.
+- No emojis in code, comments, or docs.
 
 ## Code style
 
@@ -41,8 +36,8 @@ pytest -q
   with numbers you can regenerate.
 - Keep commits focused and messages descriptive.
 
-## Good first extensions
+## Ideas for extensions
 
-The [Cursor kickoff prompts](docs/CURSOR_KICKOFF_PROMPTS.md) list concrete,
-scoped tasks (real-data ingestion, public-dataset loaders, attention studies,
-closing the planning loop) aligned with the [roadmap](docs/ROADMAP.md).
+See `README.md` and `REPORT.md` for current limitations. Useful directions when
+you pick them up: Tello fine-tune (needs footage), physics questions in
+`research/prober/note.md`, and tighter closed-loop control in sim.

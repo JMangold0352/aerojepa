@@ -29,8 +29,7 @@ class AeroJEPA(nn.Module):
 
     Whether those targets are *scattered masked patches* (representation
     learning) or *entire future frames* (a forward world model) is decided by the
-    mask collator, not the model. That single design choice keeps AeroJEPA honest
-    and reusable: the same weights support both objectives.
+    mask collator, not the model. Same weights support both objectives.
 
     Only the student encoder is kept for downstream use (probing, planning).
     """
