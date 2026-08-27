@@ -39,6 +39,9 @@ AeroProber is a lightweight prober head that converts latent rollouts from a
 
 ## Evaluation (leak-free v3, full scale)
 
+Caption note: horizon = 4 predict frames, \(\Delta t = 0.025\,\mathrm{s}\) (40 Hz),
+position relative to \(t=0\) in-sim. **Not** comparable to SkyJEPA outdoor RMSE.
+
 **Synthetic (PyFlyt), regular predictor, 5 seeds:**
 
 | arm | position RMSE | attitude RMSE | velocity RMSE |
@@ -47,6 +50,9 @@ AeroProber is a lightweight prober head that converts latent rollouts from a
 | plain MLP | 0.152 ± 0.022 m | 2.84 ± 0.03 deg | 0.252 m/s |
 
 Pre-registered success criterion (structured position < plain, non-overlapping): **met**.
+
+**Caveat:** these tables were trained **before** the PyFlyt GT unit/frame fix
+(body vel→world, rates rad→deg). See [`docs/CORRECTNESS.md`](../docs/CORRECTNESS.md).
 
 **Looped vs regular (structured):** tie — negative result on adaptive compute helping metric groundability.
 
@@ -58,7 +64,7 @@ Pre-registered success criterion (structured position < plain, non-overlapping):
 | attitude RMSE | 33.6 ± 29.4 deg | 2.28 deg |
 | altitude RMSE | 5.69 ± 6.97 m | — |
 
-Eval uses zero controls (no motor telemetry). Large sim-to-real gap; main open problem for collaboration.
+Eval uses zero controls (no motor telemetry). Large sim-to-real gap remains.
 
 ## Limitations
 
@@ -70,4 +76,8 @@ Eval uses zero controls (no motor telemetry). Large sim-to-real gap; main open p
 
 ## Relation to SkyJEPA
 
-Extends SkyJEPA's prober concept to a looped latent world model. Key addition: we test whether looped predictor refinement improves metric groundability (it does not, at full scale). See `research/prober/note.md`.
+[SkyJEPA](https://arxiv.org/abs/2606.23444) (Rao et al., 2026) is a state-history
+JEPA with a physics-inspired prober and outdoor MPPI. AeroProber asks the same
+*family* of question for **video** latents. Key addition: looped-vs-regular
+metric groundability (currently a **tie**). Do not compare short-horizon sim RMSE
+here to SkyJEPA outdoor numbers. See `research/prober/note.md`.

@@ -7,7 +7,7 @@ differentiable control integrator.
 ## Quick start
 
 ```bash
-# From repo root. PyFlyt must run OUTSIDE the Cursor sandbox.
+# From repo root. PyFlyt must run outside sandboxed environments.
 
 # 1. Train the leak-free structured prober (regular predictor, PyFlyt):
 python research/prober/scripts/train_prober.py \
@@ -79,6 +79,13 @@ research/prober/
 
 Success criterion (structured pos < plain, non-overlapping bands): **MET**.
 
-Looped vs regular (structured prober): tie on position and attitude — looped predictor does not improve metric groundability.
+Looped vs regular (structured prober): tie on position and attitude — looped
+predictor does not improve metric groundability.
+
+**Caveat:** the ~0.006 m tables above were trained **before** the PyFlyt GT
+unit/frame fix in `_obs_to_metric_state` (body vel→world, rates rad→deg). See
+[`docs/CORRECTNESS.md`](../../docs/CORRECTNESS.md).
 
 See [note.md](note.md) for the leak discovery, SkyJEPA comparison, and open questions.
+Gating / body residual: [gating_exp.md](gating_exp.md). Integrator bake-off:
+`scripts/run_integrator_bakeoff.py`.

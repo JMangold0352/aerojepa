@@ -34,8 +34,13 @@ python scripts/evaluate_real.py \
 | Synthetic latent cosine | **0.994** |
 | Gap | **+0.037** |
 
-Weaker than [`real_finetune_fast`](aerojepa_real_finetune.md) on this metric;
-that is expected and acceptable for planning use.
+Weaker than [`real_finetune_fast`](aerojepa_real_finetune.md) on protocol-B cosine.
+**Action counterfactuals fail** (true≈zero≈shuffle cosine ≈0.994): do not treat
+this checkpoint as a causal world model. Keep it for the closed-loop action
+interface only. Do **not** promote `*_wilds_v2`.
+
+Model input **64×64** (Wilds clips may be 128 on disk). Cosine = predictor↔EMA teacher
+alignment on held-out clips — a training diagnostic, not the scientific headline.
 
 ## Residual
 

@@ -1,37 +1,21 @@
-"""Differentiable kinematic integrator for a quadrotor (Euler-angle attitude).
+"""Differentiable integrators for AeroProber metric rollouts.
 
-The integrator advances a metric state ``(pos, vel, euler_att, ang_vel)`` forward
-in time given an action (the AeroJEPA 6-DoF pose-delta convention) and a residual
-acceleration predicted by the prober.
+**Use :class:`ControlIntegrator` for all leak-free / headline work.** It consumes
+exogenous PyFlyt controls ``(vp, vq, vr, T)`` — body-rate setpoints (rad/s) plus
+a *normalized* collective thrust — and advances
+``(pos, vel, euler_att_deg, ang_vel_deg)`` with a first-order Euler step.
 
-State layout (all in metric units, degrees for attitude):
-    pos       (..., 3)   world-frame position [m]
-    vel       (..., 3)   world-frame velocity [m/s]
-    euler_att (..., 3)   (yaw, pitch, roll) in degrees, wrapped to (-180, 180]
-    ang_vel   (..., 3)   body-frame angular velocity [deg/s]
+Plant facts (z-up, mass default 1 kg, ``hover_thrust=0.39``, ``dt=0.025``):
+    a_lin_nom = R(euler) @ e3 * (T/hover)*|g| + g*e3
+    a_ang_nom = (deg(vp,vq,vr) - omega) / dt
+Residuals: world-frame linear + body-frame angular. Attitude is stored as an
+Euler chart with wrap; body rates ``(p,q,r)`` are converted to Euler rates
+before the chart step — **not** a Lie-group Exp update (see research/AUDIT.md V5
+and COLLAB_MEMO.md). Angular residuals are typically scaled by 0.25 in ``Prober``.
 
-Action layout (AeroJEPA ACTION_COLUMNS):
-    (dx, dy, d_altitude, d_yaw, d_pitch, d_roll)
-    -- per-frame pose deltas. The first three are body velocities (m/s proxy),
-       the last three are wrapped frame-to-frame attitude deltas (deg).
-
-Residual layout (prober output):
-    res_lin (..., 3)   residual linear acceleration [m/s^2]
-    res_ang (..., 3)   residual angular acceleration [deg/s^2]
-
-Nominal physics (what the action alone would do):
-    - The body-velocity channels of the action are taken as the nominal
-      velocity update (a first-order hold: the action *is* the velocity).
-    - The attitude-delta channels of the action are taken as the nominal
-      angular velocity update.
-    Gravity is applied as a constant downward acceleration on the world-frame
-    z-velocity so that an action of all zeros does not hover -- the prober must
-    learn to cancel it. This keeps the nominal model honest and gives the
-    residual a real job to do.
-
-Integration: first-order Euler with the action's per-frame dt. Attitude is
-wrapped with ``wrap_degrees`` after each step so it stays in (-180, 180].
-Everything is differentiable through standard torch ops.
+:class:`KinematicIntegrator` is **legacy / leaky**: it treats AeroJEPA 6-DoF
+pose-delta actions as velocity/attitude targets (can equal GT). Do not use it
+for reported v3 numbers.
 """
 
 from __future__ import annotations
@@ -41,9 +25,7 @@ from dataclasses import dataclass
 import torch
 
 # Gravity in m/s^2, acting on the world z-velocity. Sign convention: z-up,
-# so gravity is negative. ``d_altitude`` in the action convention is ``vgz``
-# (body z-velocity), which means an action of zero should make the drone
-# fall; the prober learns the residual to counteract this.
+# so gravity is negative.
 GRAVITY_Z = -9.81
 
 
@@ -59,7 +41,7 @@ class MetricState:
     pos: torch.Tensor
     vel: torch.Tensor
     euler_att: torch.Tensor  # (yaw, pitch, roll), degrees
-    ang_vel: torch.Tensor    # (deg/s)
+    ang_vel: torch.Tensor    # body (p, q, r) deg/s
 
     @classmethod
     def zeros(cls, batch_size: int, device: torch.device | str = "cpu") -> MetricState:
@@ -86,19 +68,10 @@ class MetricState:
 
 
 class KinematicIntegrator(torch.nn.Module):
-    """First-order differentiable integrator for the prober rollout.
+    """LEGACY / LEAKY first-order integrator (state-derived AeroJEPA actions).
 
-    The nominal model derives velocity/angular-velocity updates directly from
-    the AeroJEPA action convention (body velocities + attitude deltas), plus
-    gravity on world-z. The prober's residual accelerations are added to the
-    derived accelerations before the Euler step.
-
-    Parameters
-    ----------
-    dt : float
-        Per-frame time step [s]. Defaults to 1/15 (the Parrot Wilds framerate).
-    gravity : float
-        World-z gravitational acceleration [m/s^2]. Set to 0.0 to disable.
+    Prefer :class:`ControlIntegrator` for all new work. Kept for provenance and
+    comparison to the pre-leak-fix design.
     """
 
     def __init__(self, dt: float = 1.0 / 15.0, gravity: float = GRAVITY_Z) -> None:
@@ -235,6 +208,30 @@ def _euler_ypr_to_rotation(att_deg: torch.Tensor) -> torch.Tensor:
     return R
 
 
+def body_rates_to_euler_rates_deg(
+    euler_att_ypr_deg: torch.Tensor, omega_pqr_deg: torch.Tensor
+) -> torch.Tensor:
+    """Map body rates (p,q,r) [deg/s] → Euler chart rates (ψ̇,θ̇,φ̇) [deg/s].
+
+    ``euler_att_ypr_deg`` is (..., 3) yaw–pitch–roll. Near pitch ±90° the chart
+    is singular — prefer Exp on SO(3) (see ``so3_integrators``) for those regimes.
+    """
+    ypr = torch.deg2rad(euler_att_ypr_deg)
+    pitch = ypr[..., 1]
+    roll = ypr[..., 2]
+    p = torch.deg2rad(omega_pqr_deg[..., 0])
+    q = torch.deg2rad(omega_pqr_deg[..., 1])
+    r = torch.deg2rad(omega_pqr_deg[..., 2])
+    sp, cp = torch.sin(pitch), torch.cos(pitch)
+    sr, cr = torch.sin(roll), torch.cos(roll)
+    cos_pitch = cp.sign() * cp.abs().clamp(min=1e-3)
+    tan_pitch = sp / cos_pitch
+    roll_dot = p + q * sr * tan_pitch + r * cr * tan_pitch
+    pitch_dot = q * cr - r * sr
+    yaw_dot = (q * sr + r * cr) / cos_pitch
+    return torch.rad2deg(torch.stack([yaw_dot, pitch_dot, roll_dot], dim=-1))
+
+
 class ControlIntegrator(torch.nn.Module):
     """Leak-free integrator: raw control commands -> metric state.
 
@@ -329,8 +326,10 @@ class ControlIntegrator(torch.nn.Module):
 
         new_vel = state.vel + a_lin * dt
         new_pos = state.pos + new_vel * dt
-        new_ang_vel = state.ang_vel + a_ang * dt
-        new_att = wrap_degrees(state.euler_att + new_ang_vel * dt)
+        new_ang_vel = state.ang_vel + a_ang * dt  # body (p,q,r) deg/s
+        # Chart update: body rates → Euler (yaw,pitch,roll) rates, then wrap.
+        euler_rates = body_rates_to_euler_rates_deg(state.euler_att, new_ang_vel)
+        new_att = wrap_degrees(state.euler_att + euler_rates * dt)
         return MetricState(pos=new_pos, vel=new_vel, euler_att=new_att, ang_vel=new_ang_vel)
 
     def rollout(

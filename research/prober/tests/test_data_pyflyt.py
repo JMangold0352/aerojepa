@@ -50,25 +50,38 @@ def test_generate_clip_reproducible():
 
 
 def test_states_to_actions_matches_telemetry_convention():
-    """Linear channels must be the per-frame velocity (not a delta), matching
-    ``telemetry.derive_actions_from_raw`` (which copies vgx/vgy/vgz for every
-    row). Angular channels are wrapped deltas with the first row zero.
-    """
-    from aerojepa_research.prober.data_pyflyt import states_to_actions
+    """Linear channels must be body velocity (R^T v_world); angular = wrapped Δatt."""
+    from aerojepa_research.prober.data_pyflyt import states_to_actions, _euler_ypr_deg_to_R
     import numpy as np
 
-    # 5 frames, distinct velocities so we can distinguish velocity from delta.
     states = np.zeros((5, 12), dtype=np.float32)
-    states[:, 3:6] = np.arange(5).reshape(-1, 1) * 0.5  # vel = 0, 0.5, 1.0, 1.5, 2.0
-    # Vary attitude so angular deltas are non-trivial.
+    states[:, 3:6] = np.arange(5).reshape(-1, 1) * 0.5  # world vel
     states[:, 6] = [10.0, 25.0, 45.0, 80.0, 120.0]  # yaw (deg)
 
     actions = states_to_actions(states)
     assert actions.shape == (5, 6)
-    # Linear channels = velocity itself, for EVERY row (including row 0).
-    np.testing.assert_allclose(actions[:, 0:3], states[:, 3:6], atol=1e-6)
-    # Angular channel row 0 is zero (no previous frame).
+    for t in range(5):
+        R = _euler_ypr_deg_to_R(states[t, 6:9])
+        expect = R.T @ states[t, 3:6]
+        np.testing.assert_allclose(actions[t, 0:3], expect, atol=1e-5)
     assert np.allclose(actions[0, 3:6], 0.0)
-    # Angular channels are wrapped deltas for rows 1+.
-    assert abs(actions[1, 3] - 15.0) < 1e-5  # 25 - 10
-    assert abs(actions[2, 3] - 20.0) < 1e-5  # 45 - 25
+    assert abs(actions[1, 3] - 15.0) < 1e-5
+    assert abs(actions[2, 3] - 20.0) < 1e-5
+
+
+def test_obs_to_metric_state_units_and_frames():
+    """PyFlyt body rad/s → world vel + body deg/s; attitude reordered to YPR deg."""
+    from aerojepa_research.prober.data_pyflyt import _obs_to_metric_state
+    import numpy as np
+
+    # Level attitude (rpy=0), body vel [1,0,0], body rate [0,0,π] rad/s → 180 deg/s yaw rate
+    obs = np.zeros(20, dtype=np.float64)
+    obs[0:3] = [0.0, 0.0, np.pi]  # p,q,r rad/s
+    obs[3:6] = [0.0, 0.0, 0.0]  # roll, pitch, yaw rad
+    obs[6:9] = [1.0, 0.0, 0.0]  # body lin vel
+    obs[9:12] = [0.0, 0.0, 1.0]  # world pos
+    st = _obs_to_metric_state(obs)
+    np.testing.assert_allclose(st[0:3], [0.0, 0.0, 1.0], atol=1e-5)
+    np.testing.assert_allclose(st[3:6], [1.0, 0.0, 0.0], atol=1e-5)  # world=body at level
+    np.testing.assert_allclose(st[6:9], [0.0, 0.0, 0.0], atol=1e-5)  # yaw,pitch,roll deg
+    np.testing.assert_allclose(st[9:12], [0.0, 0.0, 180.0], atol=1e-3)  # p,q,r deg/s

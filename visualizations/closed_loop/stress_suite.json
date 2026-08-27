@@ -1,0 +1,222 @@
+{
+  "world_checkpoint": "checkpoints/action_conditioned_wilds/latest.pt",
+  "residual_checkpoint": "checkpoints/action_residual_wilds/best.pt",
+  "planner": "gradient",
+  "latent_smooth": 0.05,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "n_seeds": 10,
+  "curves": {
+    "wind_gust": [
+      {
+        "difficulty": 0.0,
+        "difficulty_label": "0.0 m/s",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 1.0,
+        "difficulty_label": "1.0 m/s",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 2.0,
+        "difficulty_label": "2.0 m/s",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 3.0,
+        "difficulty_label": "3.0 m/s",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 4.0,
+        "difficulty_label": "4.0 m/s",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      }
+    ],
+    "aggressive_turn": [
+      {
+        "difficulty": 0.5,
+        "difficulty_label": "scale\u00d70.50",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 0.75,
+        "difficulty_label": "scale\u00d70.75",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 1.0,
+        "difficulty_label": "scale\u00d71.00",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 1.25,
+        "difficulty_label": "scale\u00d71.25",
+        "success_rate": 0.0,
+        "n_seeds": 10,
+        "se": 0.0
+      }
+    ],
+    "recover_delay": [
+      {
+        "difficulty": 10,
+        "difficulty_label": "delay=10",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 20,
+        "difficulty_label": "delay=20",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 40,
+        "difficulty_label": "delay=40",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 60,
+        "difficulty_label": "delay=60",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      }
+    ],
+    "hover_disturb": [
+      {
+        "difficulty": 0.5,
+        "difficulty_label": "kick\u00d70.50",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 0.75,
+        "difficulty_label": "kick\u00d70.75",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 1.0,
+        "difficulty_label": "kick\u00d71.00",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      },
+      {
+        "difficulty": 1.25,
+        "difficulty_label": "kick\u00d71.25",
+        "success_rate": 1.0,
+        "n_seeds": 10,
+        "se": 0.0
+      }
+    ]
+  },
+  "n_failures_logged": 10,
+  "failures_sample": [
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 0,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 1,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 2,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 3,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 4,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 5,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 6,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 7,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 8,
+      "failure_mode": "missed_turn",
+      "reached": false
+    },
+    {
+      "task": "aggressive_turn",
+      "difficulty": 1.25,
+      "seed": 9,
+      "failure_mode": "missed_turn",
+      "reached": false
+    }
+  ],
+  "note": "Success vs difficulty \u2014 not a 100%\u00d73-seed table. v1 stack only."
+}

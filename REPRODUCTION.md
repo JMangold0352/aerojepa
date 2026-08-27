@@ -102,3 +102,16 @@ Full metric recipes (including 64 vs 128, gap eval, multi-seed tables):
 - Exact floating-point results vary across hardware and backends (MPS vs CUDA vs
   CPU); trends and relative comparisons are stable, absolute values may drift
   slightly.
+
+## Continuous integration
+
+The repo includes [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (lint /
+tests). If `git push` rejects the workflow file with a `workflow` scope error,
+refresh credentials then push again:
+
+```bash
+gh auth refresh -s workflow
+git push
+```
+
+Until that succeeds, CI may exist only in the local tree and not yet on GitHub.

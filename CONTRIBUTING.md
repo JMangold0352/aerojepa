@@ -38,6 +38,7 @@ pytest -q
 
 ## Ideas for extensions
 
-See `README.md` and `REPORT.md` for current limitations. Useful directions when
-you pick them up: Tello fine-tune (needs footage), physics questions in
-`research/prober/note.md`, and tighter closed-loop control in sim.
+See `README.md` and `REPORT.md` for current limitations. Useful directions:
+physics / integrator questions in `research/prober/note.md`, closing the
+action-counterfactual gap, and harder closed-loop stress in sim. Optional
+personal Tello capture is future work, not a required stage.

@@ -3,6 +3,11 @@
 What was tried and what it showed. Metric protocols:
 [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md).
 
+**Related work.** Closest paper: SkyJEPA (Rao et al., arXiv:2606.23444, 2026) —
+state-history JEPA + physics-inspired prober + outdoor MPPI. AeroJEPA is a
+*video*-JEPA on egocentric clips; do not compare AeroProber short-horizon sim RMSE
+to SkyJEPA outdoor tracking. See README Related work for BibTeX.
+
 ## Architecture & synthetic benchmark — **complete**
 
 **Goal.** Video JEPA world model + reproducible synthetic benchmark.

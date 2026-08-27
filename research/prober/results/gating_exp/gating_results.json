@@ -1,0 +1,79 @@
+{
+  "skyjepa_note": "SkyJEPA (Rao et al., arXiv:2606.23444) uses a world-frame \u0394v\u0307 residual. This body-vs-world SO(3) invariance test is not in their paper.",
+  "frame_invariance": {
+    "body_invariance_rmse": 0.0,
+    "world_must_rotate_rmse_if_forgotten": 0.4712153673171997,
+    "world_ok_when_rotated_rmse": 0.0,
+    "pass_body_invariant": true,
+    "pass_world_transforms": true
+  },
+  "variants": {
+    "A_ungated_world": {
+      "train_loss": [
+        237.5737533569336,
+        237.57299995422363,
+        237.5724105834961
+      ],
+      "position_rmse": 0.005094118416309357,
+      "attitude_rmse_geodesic_deg": 2.6907589435577393,
+      "attitude_rmse_deg_legacy": 2.698439598083496,
+      "per_horizon_pos_rmse": [
+        0.001860943273641169,
+        0.0038178549148142338,
+        0.005583709105849266,
+        0.007388046942651272
+      ],
+      "per_horizon_att_geodesic_rmse": [
+        1.4418597221374512,
+        2.283076047897339,
+        2.922215461730957,
+        3.6235339641571045
+      ]
+    },
+    "B_gated_body": {
+      "train_loss": [
+        237.57340621948242,
+        237.57260131835938,
+        237.57145500183105
+      ],
+      "position_rmse": 0.005517886020243168,
+      "attitude_rmse_geodesic_deg": 2.690779447555542,
+      "attitude_rmse_deg_legacy": 2.6984548568725586,
+      "per_horizon_pos_rmse": [
+        0.0019310151692479849,
+        0.004027758724987507,
+        0.006009265314787626,
+        0.008107115514576435
+      ],
+      "per_horizon_att_geodesic_rmse": [
+        1.4419275522232056,
+        2.283076047897339,
+        2.922248601913452,
+        3.6235406398773193
+      ]
+    },
+    "C_partial_rz": {
+      "train_loss": [
+        237.5733871459961,
+        237.5722198486328,
+        237.57072067260742
+      ],
+      "position_rmse": 0.005676112603396177,
+      "attitude_rmse_geodesic_deg": 2.690788507461548,
+      "attitude_rmse_deg_legacy": 2.698460817337036,
+      "per_horizon_pos_rmse": [
+        0.0019634270574897528,
+        0.0041182273998856544,
+        0.006176169030368328,
+        0.00836140662431717
+      ],
+      "per_horizon_att_geodesic_rmse": [
+        1.4419106245040894,
+        2.283076047897339,
+        2.9222571849823,
+        3.623567581176758
+      ]
+    }
+  },
+  "prediction": "Gated body residual should win at 1\u20135 s with a t^2 signature, not necessarily at 0.1 s (4 frames)."
+}

@@ -6,9 +6,10 @@ Generates clips of ``(frames, actions, metric_state)`` where:
                  (dx, dy, d_altitude, d_yaw, d_pitch, d_roll), derived from
                  consecutive PyFlyt states so the frozen action-conditioned
                  predictor (if any) sees in-distribution inputs.
-- ``metric_state`` (T, 12) float32 -- [pos(3), vel(3), euler_att_deg(3), ang_vel(3)]
-                    ground truth for the supervised prober loss. Attitude is
-                    in DEGREES (yaw, pitch, roll order) and wrapped to (-180, 180].
+- ``metric_state`` (T, 12) float32 -- [pos_world(3), vel_world(3),
+                    euler_att_deg(yaw,pitch,roll), ang_vel_body_pqr_deg(3)].
+                    PyFlyt obs ``lin_vel``/``ang_vel`` are body-frame (rad/s for
+                    rates); we convert to world velocity + deg/s body rates.
 
 The clips are driven by random PyFlyt control actions (angular rates + thrust),
 which produce rich, physically-plausible quadrotor motion. We record the
@@ -56,6 +57,22 @@ def _euler_rad_to_deg_yaw_pitch_roll(ang_pos_rpy: np.ndarray) -> np.ndarray:
     return np.array([np.degrees(yaw), np.degrees(pitch), np.degrees(roll)], dtype=np.float32)
 
 
+def _euler_ypr_deg_to_R(att_deg_ypr: np.ndarray) -> np.ndarray:
+    """Body→world rotation from (yaw, pitch, roll) degrees. Returns (3, 3)."""
+    y, p, r = np.deg2rad(att_deg_ypr.astype(np.float64))
+    cy, sy = np.cos(y), np.sin(y)
+    cp, sp = np.cos(p), np.sin(p)
+    cr, sr = np.cos(r), np.sin(r)
+    return np.array(
+        [
+            [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
+            [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
+            [-sp, cp * sr, cp * cr],
+        ],
+        dtype=np.float32,
+    )
+
+
 def states_to_actions(states: np.ndarray) -> np.ndarray:
     """Derive AeroJEPA 6-DoF pose-delta actions from consecutive metric states.
 
@@ -68,28 +85,27 @@ def states_to_actions(states: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    states : (T, 12)  [pos, vel, euler_att_deg(yaw,pitch,roll), ang_vel] per frame
+    states : (T, 12)  [pos, vel_world, euler_att_deg(yaw,pitch,roll), ang_vel_pqr_deg]
 
     Returns
     -------
     actions : (T, 6)  (dx, dy, d_altitude, d_yaw, d_pitch, d_roll)
               The first row's angular channels are zero (no previous frame);
-              the linear channels carry the first frame's velocity (matching
-              ``telemetry.derive_actions_from_raw``, which copies vgx/vgy/vgz
-              for every row including the first).
+              the linear channels carry body velocity (``R^T v_world``).
     """
     T = states.shape[0]
     actions = np.zeros((T, ACTION_DIM), dtype=np.float32)
-    if T < 2:
+    if T < 1:
         return actions
-    vel = states[:, 3:6]           # velocity (PyFlyt: world-frame; treated as body proxy)
-    att = states[:, 6:9]           # yaw, pitch, roll (deg)
-    # Linear channels: the velocity itself (matches telemetry: actions[:,0]=vgx, etc.).
-    actions[:, 0:3] = vel
-    # Angular channels: wrapped frame-to-frame attitude deltas.
-    actions[1:, 3] = _wrap_degrees(np.diff(att[:, 0]))  # d_yaw
-    actions[1:, 4] = np.diff(att[:, 1])                  # d_pitch
-    actions[1:, 5] = np.diff(att[:, 2])                  # d_roll
+    vel_w = states[:, 3:6]
+    att = states[:, 6:9]  # yaw, pitch, roll (deg)
+    for t in range(T):
+        R = _euler_ypr_deg_to_R(att[t])
+        actions[t, 0:3] = R.T @ vel_w[t]  # body velocity for telemetry match
+    if T >= 2:
+        actions[1:, 3] = _wrap_degrees(np.diff(att[:, 0]))  # d_yaw
+        actions[1:, 4] = np.diff(att[:, 1])  # d_pitch
+        actions[1:, 5] = np.diff(att[:, 2])  # d_roll
     return actions
 
 
@@ -351,15 +367,24 @@ def _obs_to_frame(frame: np.ndarray, img_size: int) -> np.ndarray:
 def _obs_to_metric_state(obs: np.ndarray) -> np.ndarray:
     """Extract a 12-D metric state from the PyFlyt gym observation.
 
-    Obs layout (euler): [ang_vel(3), ang_pos(3) rpy rad, lin_vel(3), lin_pos(3), action(4), aux(4)].
-    Output: [pos(3), vel(3), euler_att_deg(3) as (yaw,pitch,roll), ang_vel(3)].
+    Obs layout (euler): ``[ang_vel(3), ang_pos(3) rpy rad, lin_vel(3), lin_pos(3), ...]``.
+    PyFlyt docs: ``ang_vel`` and ``lin_vel`` are **body-frame**; ``ang_pos`` /
+    ``lin_pos`` are ground/inertial. ``ang_vel`` is in **rad/s**.
+
+    Output layout (matches :class:`ControlIntegrator`):
+      ``[pos_world(3), vel_world(3), euler_att_deg(yaw,pitch,roll), ang_vel_body_pqr_deg(3)]``
     """
-    ang_vel = obs[0:3]
+    ang_vel_body_rad = obs[0:3].astype(np.float64)  # (p, q, r) rad/s
     ang_pos_rpy_rad = obs[3:6]
-    lin_vel = obs[6:9]
-    lin_pos = obs[9:12]
+    lin_vel_body = obs[6:9].astype(np.float64)
+    lin_pos = obs[9:12].astype(np.float32)
     att_deg_ypr = _euler_rad_to_deg_yaw_pitch_roll(ang_pos_rpy_rad)
-    return np.concatenate([lin_pos, lin_vel, att_deg_ypr, ang_vel], axis=0).astype(np.float32)
+    R = _euler_ypr_deg_to_R(att_deg_ypr)  # body → world
+    vel_world = (R @ lin_vel_body).astype(np.float32)
+    ang_vel_deg = np.degrees(ang_vel_body_rad).astype(np.float32)  # (p, q, r) deg/s
+    return np.concatenate([lin_pos, vel_world, att_deg_ypr, ang_vel_deg], axis=0).astype(
+        np.float32
+    )
 
 
 class PyFlytClipsDataset(Dataset):
@@ -373,6 +398,11 @@ class PyFlytClipsDataset(Dataset):
     * ``wind_fraction`` — hover / wind-counter under constant wind
     * ``kick_fraction`` — disturb then brake/home (recover supervision)
     * ``turn_fraction`` — L-path seek (corner supervision)
+
+    **Leak warning:** ``hover`` / ``kick`` / ``turn`` build controls from the
+    current observation (state-dependent PD). Do **not** use nonzero
+    ``wind/kick/turn_fraction`` for leak-free headline ablations — keep the
+    default fractions at 0 (random exogenous RNG controls only).
     """
 
     def __init__(
@@ -406,6 +436,14 @@ class PyFlytClipsDataset(Dataset):
         if total > 1.0 + 1e-6:
             raise ValueError(
                 f"wind+kick+turn fractions must sum to ≤1, got {total:.3f}"
+            )
+        if total > 0.0:
+            warnings.warn(
+                "PyFlytClipsDataset: nonzero wind/kick/turn_fraction uses "
+                "state-dependent PD controls (leaky for leak-free claims). "
+                "Default published recipes keep all fractions at 0.",
+                UserWarning,
+                stacklevel=2,
             )
 
     def __len__(self) -> int:

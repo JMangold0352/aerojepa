@@ -67,8 +67,8 @@ without labeling the split.
 
 ## Closed-loop (PyFlyt)
 
-Requires PyFlyt; run **outside** the Cursor sandbox (native physics can segfault
-under sandboxing).
+Requires PyFlyt; run **outside** sandboxed environments (native physics can
+segfault under sandboxing).
 
 ### Default demo stack
 
@@ -126,3 +126,56 @@ column.
 Action-conditioned Wilds is weaker than `real_finetune_fast` on protocol B real
 cosine (~0.957 vs ~0.974) but is required for gradient planning + residual.
 Keep those two stories separate in public tables.
+
+## Action counterfactuals
+
+```bash
+python scripts/eval_action_counterfactual.py \
+  --checkpoint checkpoints/action_conditioned_wilds/latest.pt \
+  --data-dir data/flights_128 --max-batches 8
+# → results/action_counterfactual.json
+# → visualizations/figures/action_counterfactual.png (+ _heatmap.png)
+```
+
+Report **true / zero / shuffled** latent cosine and smooth-L1. Success =
+shuffled and zero clearly worse than true. Current result: they are **not**
+(cosine ≈ 0.994 for all three) — do not claim a causal world model.
+
+## Compounding + metric vs horizon
+
+```bash
+python scripts/eval_compounding.py \
+  --ac-checkpoint checkpoints/action_conditioned_wilds/latest.pt \
+  --uncond-checkpoint checkpoints/real_finetune_fast/latest.pt \
+  --data-dir data/flights_128 --max-batches 4 --pyflyt-clips 8
+# → results/compounding.json
+# → visualizations/figures/compounding_vs_horizon.png
+```
+
+Teacher-forced vs open-loop latent L1; compounding ratio
+\(\mathrm{CR}=e_\mathrm{OL}/e_\mathrm{TF}\). Physics-only overlay uses zero-residual
+`ControlIntegrator` on PyFlyt clips. Captions: horizon, \(\Delta t=0.025\,\mathrm{s}\),
+position **relative to predict-window \(t=0\)**. Do **not** compare short-horizon
+probe RMSE to SkyJEPA outdoor tracking.
+
+## Hard PyFlyt (success vs difficulty)
+
+```bash
+python scripts/run_hard_pyflyt_suite.py \
+  --checkpoint checkpoints/action_conditioned_wilds/latest.pt \
+  --residual-checkpoint checkpoints/action_residual_wilds/best.pt \
+  --seeds 0-9
+# → visualizations/closed_loop/stress_suite.json
+# → visualizations/closed_loop/stress_suite_success.png
+```
+
+v1 stack only. Prefer this figure over any 100% × 3-seed table in README/abstract.
+
+## Physics evals (gating + integrator)
+
+See `research/prober/gating_exp.md` and `docs/CORRECTNESS.md`.
+
+```bash
+python research/prober/scripts/run_gating_exp.py --skip-train
+python research/prober/scripts/run_integrator_bakeoff.py
+```

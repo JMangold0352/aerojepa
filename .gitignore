@@ -27,6 +27,16 @@ env/
 htmlcov/
 .ipynb_checkpoints/
 
+# Local / private notes (never publish; Desktop copies are fine)
+AeroJEPA_Current_State.md
+AeroJEPA_CURSOR*
+AeroJEPA_physics_memo.md
+*COLLAB_MEMO.md
+docs/DEMO_VIDEO_BRIEF.md
+
+# Scratch run logs under results/
+results/_*.log
+
 # Training artifacts (regenerated from configs + seeds)
 checkpoints/
 runs/

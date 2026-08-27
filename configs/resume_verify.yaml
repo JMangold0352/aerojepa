@@ -1,4 +1,4 @@
-# Two-epoch smoke config for verifying --resume (Prompt 7).
+# Two-epoch smoke config for verifying --resume.
 _base_: smoke_test.yaml
 
 train:

@@ -7,30 +7,27 @@ baselines. Writes metrics JSON, a trajectory plot, and per-policy GIFs under
 
 Examples::
 
-    # Hover (planner vs hover-thrust vs random):
+    # Default v1 stack (Wilds action + residual):
     python scripts/run_closed_loop_demo.py \\
-        --checkpoint checkpoints/action_conditioned/latest.pt \\
-        --task hover --max-steps 160
+        --checkpoint checkpoints/action_conditioned_wilds/latest.pt \\
+        --residual-checkpoint checkpoints/action_residual_wilds/best.pt \\
+        --planner gradient --latent-smooth 0.05 --task hover
 
-    # Waypoint reach (planner vs reactive seek vs hover vs random):
+    # Waypoint:
     python scripts/run_closed_loop_demo.py \\
-        --checkpoint checkpoints/action_conditioned/latest.pt \\
+        --checkpoint checkpoints/action_conditioned_wilds/latest.pt \\
+        --residual-checkpoint checkpoints/action_residual_wilds/best.pt \\
+        --planner gradient --latent-smooth 0.05 \\
         --task waypoint --goal 0.6 0.0 0.0 --max-steps 200
 
-    # Disturbance recovery (settle → kick → return home):
+    # Disturbance recovery:
     python scripts/run_closed_loop_demo.py \\
-        --checkpoint checkpoints/action_conditioned/latest.pt \\
-        --task recover --max-steps 220 --disturb-at 40 --disturb-steps 18
+        --checkpoint checkpoints/action_conditioned_wilds/latest.pt \\
+        --residual-checkpoint checkpoints/action_residual_wilds/best.pt \\
+        --planner gradient --latent-smooth 0.05 \\
+        --task recover --max-steps 220
 
-    # Moderate wind gust (station-keeping stress):
-    python scripts/run_closed_loop_demo.py \\
-        --checkpoint checkpoints/action_conditioned/latest.pt \\
-        --task wind_gust --wind-mps 2.0 --max-steps 200
-
-    # Aggressive L-turn (sharp 90° course change):
-    python scripts/run_closed_loop_demo.py \\
-        --checkpoint checkpoints/action_conditioned/latest.pt \\
-        --task aggressive_turn --max-steps 260
+Do not use ``*_wilds_v2`` checkpoints as defaults (worse protocol-B / soft turn).
 
 Requires optional deps: ``pip install PyFlyt gymnasium``.
 """
@@ -60,7 +57,11 @@ from aerojepa.utils.device import get_device
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--checkpoint", default=None, help="Trained checkpoint (optional).")
+    parser.add_argument(
+        "--checkpoint",
+        default="checkpoints/action_conditioned_wilds/latest.pt",
+        help="World-model checkpoint (default: v1 Wilds action-conditioned).",
+    )
     parser.add_argument("--device", default="auto")
     parser.add_argument(
         "--task",
@@ -128,14 +129,14 @@ def main() -> None:
     )
     parser.add_argument(
         "--residual-checkpoint",
-        default=None,
-        help="Optional ActionResidualHead checkpoint (heuristic + learned residual).",
+        default="checkpoints/action_residual_wilds/best.pt",
+        help="ActionResidualHead checkpoint (default: v1 Wilds multi-stress residual).",
     )
     parser.add_argument(
         "--planner",
-        default="shooting",
         choices=["shooting", "gradient"],
-        help="Planning method: random shooting or gradient-based multi-step optimization.",
+        default="gradient",
+        help="Planner mode (default: gradient for the v1 full stack).",
     )
     parser.add_argument("--grad-steps", type=int, default=20, help="Gradient planner iterations.")
     parser.add_argument("--grad-lr", type=float, default=0.06, help="Gradient planner learning rate.")
@@ -157,7 +158,7 @@ def main() -> None:
     parser.add_argument(
         "--latent-smooth",
         type=float,
-        default=0.0,
+        default=0.05,
         help="Weight on the world-model latent-smoothness term (>0 = plan in latent space).",
     )
     parser.add_argument(
@@ -187,7 +188,7 @@ def main() -> None:
     img_size = int(cfg["data"]["img_size"])
     latent_dim = int(cfg["encoder"]["embed_dim"])
     residual_head = None
-    if args.residual_checkpoint:
+    if args.residual_checkpoint and Path(args.residual_checkpoint).exists():
         from aerojepa.sim.action_residual import load_residual_head
 
         residual_head = load_residual_head(
@@ -197,6 +198,8 @@ def main() -> None:
             f"Loaded residual ({residual_head.num_params()} params) "
             f"from {args.residual_checkpoint}"
         )
+    elif args.residual_checkpoint:
+        print(f"Residual checkpoint not found ({args.residual_checkpoint}); heuristic map only.")
 
     conditioned = model.predictor_is_action_conditioned()
     if args.goal is not None:
