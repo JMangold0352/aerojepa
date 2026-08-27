@@ -55,7 +55,7 @@ research/prober/
     prober_looped.yaml         looped predictor arm
     prober_real_finetune.yaml  sim training with frozen real_finetune_fast (for Wilds eval)
   tests/
-  note.md             technical note (physics collaboration)
+  note.md             technical note (architecture + open questions)
   results/            JSON metrics + figures
 ```
 

@@ -1,6 +1,6 @@
 # AeroProber: A Physics-Inspired Prober for Frozen Latent World Models
 
-Technical note v2.0 -- July 2026. For physics collaboration review.
+Technical note v2.0 -- July 2026.
 
 ## 1. Summary
 
@@ -48,7 +48,7 @@ metric state for aerial robotics. AeroProber takes the same *family* of idea and
   residual accelerations on top of a nominal thrust/torque model, rather than
   decoding state directly.
 - **Uses Euler angles for v1** (matching AeroJEPA telemetry). SO(3) upgrade
-  flagged for collaboration input (Section 8).
+  is an open question (Section 9).
 - **Trains on PyFlyt** (full 6-DoF state) and evaluates on Wilds for
   velocity/attitude/altitude.
 

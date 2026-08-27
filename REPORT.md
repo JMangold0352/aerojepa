@@ -60,7 +60,7 @@ Artifacts: `checkpoints/{baseline,looped,world_model,action_conditioned}/`,
 
 1. Capture Tello clips (`scripts/tello_workflow.sh`) — no footage on disk yet.
 2. Better action-Wilds FT than v1 — **v2 failed** (protocol-B real cosine 0.915 vs v1 0.957); keep v1 as default.
-3. Physics collaboration on AeroProber — [`research/prober/note.md`](research/prober/note.md).
+3. AeroProber open physics questions — [`research/prober/note.md`](research/prober/note.md) §9.
 
 ---
 
