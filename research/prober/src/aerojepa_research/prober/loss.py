@@ -53,7 +53,7 @@ class StructuredProberLoss(nn.Module):
     velocity across all predicted horizons.
 
     ``control_dropout`` (train only): with this probability, zero the control
-    tensor for the batch so the residual must rely on latents — matches the
+    tensor for the batch so the residual must rely on latents - matches the
     Wilds zero-control eval regime without changing the architecture.
     """
 

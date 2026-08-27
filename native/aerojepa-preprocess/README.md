@@ -1,7 +1,7 @@
 # aerojepa-preprocess
 
 Optional Rust helper for AeroJEPA video ingest. **Not required** for training
-or research — without it, Python uses OpenCV.
+or research - without it, Python uses OpenCV.
 
 Details: [`docs/NATIVE_PREPROCESS.md`](../../docs/NATIVE_PREPROCESS.md).
 

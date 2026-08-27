@@ -4,14 +4,14 @@
 
 **Video-JEPA for quadrotor egocentric dynamics: leak-free short-horizon metric
 probing (0.1 s, \(\Delta t=0.025\,\mathrm{s}\)) on a rate+thrust plant, plus PyFlyt
-closed-loop planning that fails on hard L-turns — without reconstructing pixels.
-Action conditioning is present in the checkpoint but does not yet pass
-true/zero/shuffle tests; do not treat it as a causal world model.**
+closed-loop planning that fails on hard L-turns, without reconstructing pixels.
+Action conditioning is in the checkpoint but does not pass true/zero/shuffle
+tests yet (not a causal world model).**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776ab?logo=python&logoColor=white)](pyproject.toml)
 [![PyTorch 2.2+](https://img.shields.io/badge/PyTorch-2.2+-ee4c2c?logo=pytorch&logoColor=white)](pyproject.toml)
 [![Gradio demo](https://img.shields.io/badge/demo-Gradio-f97316?logo=gradio&logoColor=white)](app.py)
-[![Params ~3–5M](https://img.shields.io/badge/params-~3--5M-54A24B)](configs/aerojepa_synth_base.yaml)
+[![Params ~3-5M](https://img.shields.io/badge/params-~3--5M-54A24B)](configs/aerojepa_synth_base.yaml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [Quickstart](#installation--quickstart) ·
@@ -36,24 +36,24 @@ Parent: [**looped-jepa**](https://github.com/JMangold0352/looped-jepa) · Closes
 [SkyJEPA](https://arxiv.org/abs/2606.23444) (Rao, Zhang, Balestriero, LeCun, and Loianno, 2026)
 is a *state*-history JEPA with a physics-inspired prober and outdoor MPPI control.
 AeroJEPA is a *video*-JEPA on egocentric drone clips (optional 6-DoF action
-channels); SkyJEPA’s own future work names RGB / RGB-D as the next step — that
-is this project. We do **not** claim to beat SkyJEPA’s outdoor tracking RMSE, and
-we do **not** compare AeroProber short-horizon sim probe error (~0.006 m at
-0.1 s) to SkyJEPA outdoor numbers (different horizon, \(\Delta t\), speed, and setting).
+channels); SkyJEPA’s own future work names RGB / RGB-D as the next step, which
+is this project. We do not claim to beat SkyJEPA’s outdoor tracking RMSE, and
+AeroProber short-horizon sim probe error (~0.006 m at 0.1 s) is not comparable
+to SkyJEPA outdoor numbers (different horizon, \(\Delta t\), speed, and setting).
 
 AeroJEPA extends [looped-jepa](https://github.com/JMangold0352/looped-jepa): predict
 future latents from short egocentric clips. The repo includes synthetic training,
 Wilds fine-tune, AeroProber metric decoding, a Gradio demo, and a PyFlyt
-closed-loop planner (~3–5M params). Controls in the prober plant are
+closed-loop planner (~3-5M params). Controls in the prober plant are
 **body-rate + thrust**, not four rotor forces.
 
-**Action conditioning (honest):** on `action_conditioned_wilds`, true / zero /
-shuffled actions yield essentially the same latent cosine (~0.994). The AC
-checkpoint is **not** yet a causal world model; keep it only because planning
-needs an action-shaped interface. Prefer unconditioned `real_finetune_fast` for
-representation claims.
+**Action conditioning:** on `action_conditioned_wilds`, true / zero / shuffled
+actions yield essentially the same latent cosine (~0.994). The AC checkpoint is
+not yet a causal world model; it remains the closed-loop default only because
+planning needs an action-shaped interface. For representation claims, use
+unconditioned `real_finetune_fast`.
 
-**Default closed-loop stack (v1 — keep this):**
+**Default closed-loop stack (v1):**
 
 ```bash
 python scripts/run_closed_loop_demo.py \
@@ -62,14 +62,14 @@ python scripts/run_closed_loop_demo.py \
   --planner gradient --latent-smooth 0.05 --task hover
 ```
 
-Do **not** use `action_conditioned_wilds_v2` / `action_residual_wilds_v2` as
-defaults (worse protocol-B real cosine ~0.915; soft L-turn 33% on the bake-off).
+`action_conditioned_wilds_v2` / `action_residual_wilds_v2` are worse on protocol-B
+real cosine (~0.915) and soft L-turn (33% on the bake-off), so they are not defaults.
 
 ---
 
 ## Related work
 
-**SkyJEPA** (Rao et al., arXiv:2606.23444, 2026) — state-history JEPA + physics-inspired
+**SkyJEPA** (Rao et al., arXiv:2606.23444, 2026) - state-history JEPA + physics-inspired
 prober + C++ MPPI on Orin NX, outdoor GPS. Project page:
 https://pratyaksh10.github.io/skyjepa-project-page/
 
@@ -91,24 +91,24 @@ Also: I-JEPA (Assran et al., CVPR 2023), V-JEPA (Bardes et al. 2024), V-JEPA 2-A
 
 ## Key results
 
-Primary scientific metrics are **action counterfactuals** (currently failing),
+Primary metrics are **action counterfactuals** (currently failing),
 **compounding / metric RMSE vs horizon**, and **closed-loop success vs difficulty**
 (see [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md)). Latent cosine is a training
-**diagnostic** — useful, but not the headline claim. JSON under [`results/`](results/).
+diagnostic. JSON under [`results/`](results/).
 
 ### Action counterfactuals (not yet causal)
 
 On `action_conditioned_wilds` (`scripts/eval_action_counterfactual.py`), true /
 zero / shuffled actions all give latent cosine ≈ **0.994**. The model does not
-yet use actions. Do not advertise a causal action-conditioned world model.
+yet use actions for prediction.
 
 ### Closed-loop stress (v1, 10 seeds)
 
-Prefer [`visualizations/closed_loop/stress_suite.json`](visualizations/closed_loop/stress_suite.json)
-over easy 3-seed tables. Wind / recover / hover remain easy; **L-turn scale ×1.25
-→ 0% success** (cliff). Card: [action Wilds](model_cards/aerojepa_action_wilds.md).
+[`visualizations/closed_loop/stress_suite.json`](visualizations/closed_loop/stress_suite.json):
+wind / recover / hover remain easy; **L-turn scale ×1.25 → 0% success**. Card:
+[action Wilds](model_cards/aerojepa_action_wilds.md).
 
-### Representation fine-tune — real aerial footage (`real_finetune_fast`)
+### Representation fine-tune - real aerial footage (`real_finetune_fast`)
 
 Fine-tuned from synthetic pretrain on **15 Parrot clips** (The Wilds Drones; **128×128 on disk**, **64×64 model input**, 10 epochs, MPS). Checkpoint: [`checkpoints/real_finetune_fast/latest.pt`](checkpoints/real_finetune_fast/latest.pt).
 
@@ -121,7 +121,7 @@ Fine-tuned from synthetic pretrain on **15 Parrot clips** (The Wilds Drones; **1
 
 Full eval: [`results/real_finetune_fast_eval.json`](results/real_finetune_fast_eval.json) · Protocol: [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md)
 
-### Closed-loop stack (v1 — default)
+### Closed-loop stack (v1 - default)
 
 | Piece | Path |
 | --- | --- |
@@ -130,13 +130,13 @@ Full eval: [`results/real_finetune_fast_eval.json`](results/real_finetune_fast_e
 | Planner | `--planner gradient --latent-smooth 0.05` |
 
 Protocol-B real cosine for the WM alone is **~0.957** (weaker than unconditioned
-`real_finetune_fast`). **v2 is worse** — do not promote `*_wilds_v2`.
+`real_finetune_fast`). `*_wilds_v2` is worse and not the default.
 
 ### Synthetic pretrain (100 epochs, procedural benchmark)
 
 | Model | Objective | Latent cosine | Rollout @ h=4 | Expected loops | Card |
 | --- | --- | ---: | ---: | ---: | --- |
-| **baseline** | masked | 0.954 | 0.917 | — | [base](model_cards/aerojepa_base.md) |
+| **baseline** | masked | 0.954 | 0.917 | - | [base](model_cards/aerojepa_base.md) |
 | **looped** | masked | **0.961** (+0.007) | 0.925 | 1.50 | [base](model_cards/aerojepa_base.md) |
 | **world_model** | future | **0.981** | 0.973 | 1.75 | [world model](model_cards/aerojepa_world_model.md) |
 | action_conditioned | future + 6-DoF | 0.980 | 0.975 | 1.75 | [world model](model_cards/aerojepa_world_model.md) |
@@ -152,7 +152,7 @@ Protocol-B real cosine for the WM alone is **~0.957** (weaker than unconditioned
 
 | Variant | Latent cosine | Rollout @ h=4 | Per-loop (1→last) |
 | --- | ---: | ---: | --- |
-| baseline | 0.953 | 0.917 | — |
+| baseline | 0.953 | 0.917 | - |
 | loops_2 | 0.960 | 0.925 | 0.941 → 0.960 |
 | loops_3 | 0.963 | 0.928 | 0.841 → 0.962 |
 | **world_model** | **0.981** | **0.973** | 0.869 → 0.981 |
@@ -195,7 +195,7 @@ Data layout: [`data/README.md`](data/README.md). Optional Tello helpers: `script
 
 ## Visual gallery
 
-All figures at **300 DPI** (PNG) or animated GIF. Regenerate from checkpoints, then refresh [`docs/gallery/`](docs/gallery/) for README embeds — see [`docs/gallery/README.md`](docs/gallery/README.md).
+All figures at **300 DPI** (PNG) or animated GIF. Regenerate from checkpoints, then refresh [`docs/gallery/`](docs/gallery/) for README embeds - see [`docs/gallery/README.md`](docs/gallery/README.md).
 
 ### Real-data world model (`real_finetune_fast`)
 
@@ -223,7 +223,7 @@ Coarse → refined latent prediction: **0.83 → 0.96 → 0.99**.
 <tr>
 <td align="center" width="50%">
 
-**Latent planner — hover**
+**Latent planner - hover**
 
 Imagined rollout on the real-data checkpoint (coherence **1.000**).
 
@@ -232,7 +232,7 @@ Imagined rollout on the real-data checkpoint (coherence **1.000**).
 </td>
 <td align="center" width="50%">
 
-**Latent planner — waypoint**
+**Latent planner - waypoint**
 
 Kinematic cost search in latent space (coherence **1.000**).
 
@@ -250,7 +250,7 @@ Kinematic cost search in latent space (coherence **1.000**).
 
 **World-model rollout (synthetic)**
 
-Healthy forward model signature — no horizon cliff.
+Healthy forward model signature - no horizon cliff.
 
 <img src="docs/gallery/world_model_rollout.png" width="420"/>
 
@@ -288,7 +288,7 @@ Observed context → imagined rollout → plan.
 <tr>
 <td align="center" colspan="2">
 
-**Ablation comparison** — per-loop gain + rollout curves
+**Ablation comparison** - per-loop gain + rollout curves
 
 <img src="docs/gallery/ablation_per_loop.png" width="420"/>
 &nbsp;&nbsp;
@@ -333,7 +333,7 @@ clip = torch.rand(1, cfg["data"]["num_frames"], 3, cfg["data"]["img_size"], cfg[
 features = model.encoder.forward_all_patches(clip)   # (1, T*S, D)
 ```
 
-### Workflow A — Synthetic (zero downloads)
+### Workflow A - Synthetic (zero downloads)
 
 Train the full model ladder on procedural drone clips:
 
@@ -347,7 +347,7 @@ python scripts/compare_baseline.py \
   --looped-checkpoint  checkpoints/looped/latest.pt
 ```
 
-### Workflow B — Real footage (Wilds Parrot)
+### Workflow B - Real footage (Wilds Parrot)
 
 Ingest public aerial data, preprocess, fine-tune from synthetic pretrain:
 
@@ -375,7 +375,7 @@ python scripts/evaluate_real.py --checkpoint checkpoints/real_finetune_fast/late
 
 Long runs: [`scripts/launch_training.sh`](scripts/launch_training.sh) · Resume: `--resume checkpoints/.../latest.pt`
 
-### Workflow C — Personal Tello footage
+### Workflow C - Personal Tello footage
 
 Record-only capture (never commands flight). One command runs preflight → four tagged maneuvers → preprocess → fine-tune → transfer report:
 
@@ -392,7 +392,7 @@ pip install djitellopy opencv-python
 ./scripts/tello_workflow.sh report                   # vs Wilds-only baseline
 ```
 
-Safety: the capture script **records only** — you fly manually. See [`data/README.md`](data/README.md).
+Safety: the capture script **records only** - you fly manually. See [`data/README.md`](data/README.md).
 
 All CLIs: [`scripts/README.md`](scripts/README.md) · Configs inherit from [`configs/aerojepa_synth_base.yaml`](configs/aerojepa_synth_base.yaml).
 
@@ -428,7 +428,7 @@ Design targets that show up throughout the stack:
 - Latent planning before execution (research demos in PyFlyt)
 - Self-supervised pretrain; fine-tune from a small clip set
 - Exit gate spends compute on hard moments only
-- ~3–5M params so experiments stay cheap on a laptop
+- ~3-5M params so experiments stay cheap on a laptop
 
 This is research code, not a deployed flight system.
 
@@ -446,10 +446,10 @@ flowchart LR
   teacher --> loss
 ```
 
-Two objectives, one network — only the mask collator changes:
+Two objectives, one network - only the mask collator changes:
 
-- **`masked`** — scattered hidden patches (representation learning)
-- **`future`** — predict upcoming frame latents (forward world model)
+- **`masked`** - scattered hidden patches (representation learning)
+- **`future`** - predict upcoming frame latents (forward world model)
 
 Deep dive: [`docs/TECHNICAL_REPORT.md`](docs/TECHNICAL_REPORT.md)
 
@@ -514,7 +514,7 @@ aerojepa/
 }
 ```
 
-**Acknowledgments** — [SkyJEPA](https://arxiv.org/abs/2606.23444) (Rao et al. 2026) ·
+**Acknowledgments** - [SkyJEPA](https://arxiv.org/abs/2606.23444) (Rao et al. 2026) ·
 [I-JEPA](https://arxiv.org/abs/2301.08243) · [Vision Transformer](https://arxiv.org/abs/2010.11929) ·
 [looped-jepa](https://github.com/JMangold0352/looped-jepa) ·
 [The Wilds Drones](https://huggingface.co/datasets/imageomics/thewilds_drones)
@@ -540,4 +540,4 @@ aerojepa/
 
 ## License
 
-[MIT](LICENSE) — Copyright (c) 2025 John Mangold.
+[MIT](LICENSE) - Copyright (c) 2025 John Mangold.

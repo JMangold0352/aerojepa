@@ -33,7 +33,7 @@ arXiv:2606.23444, 2026. https://arxiv.org/abs/2606.23444
 
 SkyJEPA is a *state*-history JEPA (pose/twist + rotor forces) with a
 physics-inspired prober and outdoor MPPI. AeroJEPA / AeroProber ask whether
-*video* latents contain rigid-body state — SkyJEPA’s own conclusion names RGB as
+*video* latents contain rigid-body state - SkyJEPA’s own conclusion names RGB as
 future work. **Do not** compare our short-horizon sim pos RMSE (~0.006 m) to
 SkyJEPA outdoor RMSE (~1.43 m): different horizon, \(\Delta t\), speed, and relative
 vs outdoor setting.
@@ -43,7 +43,7 @@ metric state for aerial robotics. AeroProber takes the same *family* of idea and
 
 - **Applies it to a video latent world model** (optionally looped). The
   looped-vs-regular comparison (Section 5) tests whether adaptive compute
-  improves metric groundability — currently a **tie**.
+  improves metric groundability - currently a **tie**.
 - **Uses a physics-structured residual integrator.** The prober predicts
   residual accelerations on top of a nominal thrust/torque model, rather than
   decoding state directly.
@@ -80,7 +80,7 @@ We use PyFlyt's raw control commands `(vp, vq, vr, T)` -- angular-rate setpoints
 and collective thrust, sampled from a RNG. These drove the simulation but are not
 derived from the metric state.
 
-**Important:** An earlier design used AeroJEPA-style pose-delta actions
+An earlier design used AeroJEPA-style pose-delta actions
 (`vgx, vgy, vgz` = velocity, attitude deltas) as the prober input. That leaked
 ground-truth velocity and attitude into the integrator. Full-scale results from
 that design (v2 overnight run) are **invalid** and kept only for provenance.
@@ -185,16 +185,16 @@ thrust scaled so hover ≈ cancels gravity. Controls at eval:
 
 - **zeros + weaker nominal** (`gravity=0`): motors unknown; do not force free-fall
   in the nominal model (Section 8).
-- **hover prior** (optional): constant exogenous `T=0.39`, rates zero — not
+- **hover prior** (optional): constant exogenous `T=0.39`, rates zero - not
   GT velocity / pose-delta actions.
 
-**Results v3 (legacy protocol)** — for provenance only:
+**Results v3 (legacy protocol)** - for provenance only:
 
 | Metric | Wilds v3 | PyFlyt sim (v3) | Gap |
 | --- | --- | --- | --- |
 | velocity RMSE (m/s) | 1.29 ± 0.62 | 0.075 | ~17× |
 | attitude RMSE (deg) | 33.6 ± 29.4 | 2.28 | ~15× |
-| altitude RMSE (m) | 5.69 ± 6.97 | — | — |
+| altitude RMSE (m) | 5.69 ± 6.97 | - | - |
 
 **Results v4** (`results/real_data_v4/`, 15 clips, zero-control + weaker nominal):
 
@@ -202,7 +202,7 @@ thrust scaled so hover ≈ cancels gravity. Controls at eval:
 | --- | --- | --- | --- |
 | velocity RMSE (m/s) | **0.135** | **−89.5%** | **MET** (target ≤0.645) |
 | attitude RMSE (deg) | **0.923** | **−97.3%** | **MET** (target ≤16.8°) |
-| altitude RMSE (m) | **0.057** | −99% | — |
+| altitude RMSE (m) | **0.057** | −99% | - |
 
 Hover-prior eval (`results/real_data_v4_hover/`): vel **0.177**, att **0.923**.
 
@@ -221,29 +221,29 @@ Most of the v3 gap was **protocol / physics mismatch**, not latent failure:
 
 After fixing those (leak-free), residual Wilds error is small on short horizons.
 Remaining gap vs sim (vel 0.135 vs 0.075) is domain shift plus missing motor
-commands — the main open problem for longer horizons and SO(3).
+commands - the main open problem for longer horizons and SO(3).
 
 ## 8. Scientific evals (Aug 2026)
 
 ### Action counterfactuals
 
 `scripts/eval_action_counterfactual.py` on `action_conditioned_wilds`.
-**Verdict: fail** — true ≈ zero ≈ shuffle on latent cosine/L1 (~0.994). Do **not**
-claim a causal action-conditioned world model yet. See
+**Verdict: fail** - true ≈ zero ≈ shuffle on latent cosine/L1 (~0.994). Not yet
+a causal action-conditioned world model. See
 `results/action_counterfactual.json`.
 
 ### Compounding
 
 `scripts/eval_compounding.py`: open-loop / teacher-forced latent L1; CR grows
 with horizon. Physics-only overlay at 0.1 s: short-horizon pos RMSE relative to
-predict-window \(t=0\), \(\Delta t=0.025\). Do not compare to SkyJEPA outdoor
+predict-window \(t=0\), \(\Delta t=0.025\). Not comparable to SkyJEPA outdoor
 tracking RMSE.
 
 ### Hard PyFlyt (10 seeds, v1 stack)
 
 `scripts/run_hard_pyflyt_suite.py` → `visualizations/closed_loop/stress_suite.json`.
 Wind ≤4 m/s and recover/hover kicks still ~100%; **L-turn scale ×1.25 collapses
-to 0%** (cliff). Prefer this figure over any 100%×3-seed table.
+to 0%** (cliff). The 100%×3-seed easy-task table is secondary.
 
 ### Gating / integrator
 
@@ -260,7 +260,7 @@ wrapped Euler RMSE; prefer geodesic going forward (`metrics.attitude_rmse_geodes
 
 1. **Attitude residual gating.** Underactuation: \(a = R(e_3 T/m)-ge_3+R f\).
    Ungated world \(\Delta\dot v\) can memorize texture. Gated body residual must
-   commit to \(R\) (or \(r_z\)) first. Prediction: gated wins at 1–5 s with a
+   commit to \(R\) (or \(r_z\)) first. Prediction: gated wins at 1-5 s with a
    \(t^2\) signature, not at 0.1 s. Angular residual already scaled by 0.25.
 
 2. **SO(3) parameterization.** Bake-off on the *same* residual net: Euler chart /
@@ -268,12 +268,12 @@ wrapped Euler RMSE; prefer geodesic going forward (`metrics.attitude_rmse_geodes
    \(\|R^\top R - I\|_F\), including pitch \(\approx 90^\circ\).
 
 3. **What \(u\) is.** Ours is rate+thrust \(c=(v_p,v_q,v_r,T)\), not SkyJEPA’s
-   four rotor forces — a closed-loop map. Identifiability battery: GT forces /
+   four rotor forces - a closed-loop map. Identifiability battery: GT forces /
    motor lag / rate+thrust / shuffled delay; when are \(m,J\) recoverable?
 
 4. **Body vs world.** Video and \(\omega\) are body; gravity and \(p\) are
    inertial. Current linear residual is **world-frame**. Test: rotate the
-   inertial frame — body residual must be invariant; world residual must rotate.
+   inertial frame - body residual must be invariant; world residual must rotate.
 
 5. **Horizon vs integrator.** Freeze residual net; swap Euler-on-\(\mathbb{R}^9\) /
    Exp / RK4-on-\(\mathfrak{so}(3)\) / LGVI. Horizons 0.2 / 1 / 5 / 10 s including
@@ -286,8 +286,8 @@ wrapped Euler RMSE; prefer geodesic going forward (`metrics.attitude_rmse_geodes
 - Real eval (v4): `python research/prober/scripts/eval_real.py --prober research/prober/results/prober_real_finetune/best.pt --checkpoint checkpoints/real_finetune_fast/latest.pt --data-dir data/flights_with_state --controls zeros`
 - Optional hover prior: add `--controls hover`
 - Tests: `pytest research/prober/tests/`
-- **Do not use** `*_full_v2` results as headline numbers (information leak).
-- **Do not use** Wilds `real_data_v3` as the current headline (legacy protocol).
+- `*_full_v2` results are invalid (information leak); archive only.
+- Wilds `real_data_v3` is a legacy protocol, not the current table.
 
 ## 11. Limitations
 

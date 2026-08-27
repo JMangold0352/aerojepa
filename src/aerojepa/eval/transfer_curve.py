@@ -1,4 +1,4 @@
-"""Transfer-curve experiment helpers — subset dirs, manifest, metrics extraction."""
+"""Transfer-curve experiment helpers - subset dirs, manifest, metrics extraction."""
 
 from __future__ import annotations
 

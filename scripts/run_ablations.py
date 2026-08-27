@@ -5,8 +5,8 @@ Isolates the design choices that matter: feed-forward vs recurrent predictor,
 loop count, and the world-model objective.
 
 Modes:
-  --mode quick   20 epochs  (~30 min on MPS) — fast signal for iteration
-  --mode full   100 epochs  (~2+ hr on MPS) — publication-quality numbers
+  --mode quick   20 epochs  (~30 min on MPS) - fast signal for iteration
+  --mode full   100 epochs  (~2+ hr on MPS) - publication-quality numbers
 
 Override epoch count anytime with ``--epochs``. Skip retraining with
 ``--eval-only`` when checkpoints already exist under ``checkpoints/ablations/``.

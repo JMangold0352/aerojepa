@@ -13,15 +13,15 @@ produced. If a metric disagrees with another table, check which protocol it used
 
 Training and eval **always** resize clips to `cfg["data"]["img_size"]` (64 today).
 Saying a checkpoint was “trained on 128 footage” means the **source files** are
-128 on disk; the network still sees 64×64. Do not compare a true 128-input model
-to these numbers without a separate recipe (patch grid and positional embeddings
-change).
+128 on disk; the network still sees 64×64. A true 128-input model is a different
+protocol (patch grid and positional embeddings change) and is not comparable
+here without a separate recipe.
 
 ## World-model metrics
 
 Primary metric: **latent cosine** between predictor and EMA teacher on held-out
 clips (higher is better). Secondary: multi-step **rollout cosine** at horizons
-1–4, and per-loop refinement when the predictor is looped.
+1-4, and per-loop refinement when the predictor is looped.
 
 ### A. Synthetic (in-distribution)
 
@@ -33,7 +33,7 @@ python scripts/evaluate.py \
 ```
 
 Uses the synthetic val set from the checkpoint config (`num_val`, seed).
-Default `max_batches=8` is the published budget — keep it when regenerating
+Default `max_batches=8` is the published budget - keep it when regenerating
 tables.
 
 ### B. Sim-to-real gap
@@ -49,7 +49,7 @@ python scripts/evaluate_real.py \
 
 Same metric code on synthetic vs real. Gap = synthetic cosine − real cosine
 (positive ⇒ real is harder). **Do not** quote training-time val cosine from
-`val_fraction` as this gap — that split is random whole-video holdout and is not
+`val_fraction` as this gap - that split is random whole-video holdout and is not
 the same as this script.
 
 Published comparisons for Wilds fine-tunes use `--data-dir data/flights_128`.
@@ -61,8 +61,8 @@ python scripts/run_transfer_curve.py --device mps
 # → results/transfer_curve/summary.json
 ```
 
-Fixed eval holdout: last **3** clips (`wilds_012`–`wilds_014`). Train subsets
-1 / 5 / 12 from the remaining pool. Do not mix these numbers with protocol B
+Fixed eval holdout: last **3** clips (`wilds_012`-`wilds_014`). Train subsets
+1 / 5 / 12 from the remaining pool. These numbers are not mixed with protocol B
 without labeling the split.
 
 ## Closed-loop (PyFlyt)
@@ -105,13 +105,13 @@ Stress-only baseline (heuristic map, no residual): see
 ## Ablations
 
 ```bash
-python scripts/run_ablations.py --mode quick   # 20 epochs — iteration
-python scripts/run_ablations.py --mode full    # 100 epochs — publication
+python scripts/run_ablations.py --mode quick   # 20 epochs - iteration
+python scripts/run_ablations.py --mode full    # 100 epochs - publication
 python visualizations/compare_ablations.py
 # → results/ablations/summary.json
 ```
 
-Always label tables with `quick` vs `full`. Do not mix epoch budgets in one
+Always label tables with `quick` vs `full`. Epoch budgets are not mixed in one
 column.
 
 ## Which checkpoint for which claim
@@ -139,7 +139,7 @@ python scripts/eval_action_counterfactual.py \
 
 Report **true / zero / shuffled** latent cosine and smooth-L1. Success =
 shuffled and zero clearly worse than true. Current result: they are **not**
-(cosine ≈ 0.994 for all three) — do not claim a causal world model.
+(cosine ≈ 0.994 for all three), so this is not yet a causal world model.
 
 ## Compounding + metric vs horizon
 
@@ -155,8 +155,8 @@ python scripts/eval_compounding.py \
 Teacher-forced vs open-loop latent L1; compounding ratio
 \(\mathrm{CR}=e_\mathrm{OL}/e_\mathrm{TF}\). Physics-only overlay uses zero-residual
 `ControlIntegrator` on PyFlyt clips. Captions: horizon, \(\Delta t=0.025\,\mathrm{s}\),
-position **relative to predict-window \(t=0\)**. Do **not** compare short-horizon
-probe RMSE to SkyJEPA outdoor tracking.
+position **relative to predict-window \(t=0\)**. Short-horizon probe RMSE is not
+comparable to SkyJEPA outdoor tracking.
 
 ## Hard PyFlyt (success vs difficulty)
 
@@ -169,7 +169,8 @@ python scripts/run_hard_pyflyt_suite.py \
 # → visualizations/closed_loop/stress_suite_success.png
 ```
 
-v1 stack only. Prefer this figure over any 100% × 3-seed table in README/abstract.
+v1 stack only. This is the primary closed-loop difficulty figure (not the older
+100% × 3-seed table).
 
 ## Physics evals (gating + integrator)
 

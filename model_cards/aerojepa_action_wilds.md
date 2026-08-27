@@ -35,16 +35,16 @@ python scripts/evaluate_real.py \
 | Gap | **+0.037** |
 
 Weaker than [`real_finetune_fast`](aerojepa_real_finetune.md) on protocol-B cosine.
-**Action counterfactuals fail** (true≈zero≈shuffle cosine ≈0.994): do not treat
-this checkpoint as a causal world model. Keep it for the closed-loop action
-interface only. Do **not** promote `*_wilds_v2`.
+**Action counterfactuals fail** (true≈zero≈shuffle cosine ≈0.994): not yet a
+causal world model. Kept for the closed-loop action interface.
+`*_wilds_v2` is worse and not the default.
 
 Model input **64×64** (Wilds clips may be 128 on disk). Cosine = predictor↔EMA teacher
-alignment on held-out clips — a training diagnostic, not the scientific headline.
+alignment on held-out clips (training diagnostic).
 
 ## Residual
 
-Frozen WM; train ~1–3k-param MLP to correct heuristic AeroJEPA→PyFlyt map.
+Frozen WM; train ~1-3k-param MLP to correct heuristic AeroJEPA→PyFlyt map.
 
 ```bash
 python scripts/train_action_residual.py \
@@ -66,8 +66,8 @@ python scripts/run_closed_loop_demo.py \
   --planner gradient --latent-smooth 0.05 --task hover
 ```
 
-Multi-seed (seeds 0–2): wind / soft turn / hard turn / recover / hover all
-**100%** success —
+Multi-seed (seeds 0-2): wind / soft turn / hard turn / recover / hover all
+**100%** success -
 [`visualizations/closed_loop/full_stack_compare_wilds.json`](../visualizations/closed_loop/full_stack_compare_wilds.json).
 Protocol details: [`docs/EVAL_PROTOCOL.md`](../docs/EVAL_PROTOCOL.md).
 

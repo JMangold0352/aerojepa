@@ -192,12 +192,12 @@ def _breaking_points(wind_results, turn_results, wind_mps: float) -> dict:
     wh = wind_results.get("hover")
     if wp is not None:
         narrative.append(
-            f"Wind {wind_mps} m/s — planner: {wp.failure_mode} "
+            f"Wind {wind_mps} m/s - planner: {wp.failure_mode} "
             f"(max_xy={wp.max_xy_drift:.2f} m). {wp.failure_detail}"
         )
     if wh is not None:
         narrative.append(
-            f"Wind {wind_mps} m/s — pure hover (no correction): {wh.failure_mode} "
+            f"Wind {wind_mps} m/s - pure hover (no correction): {wh.failure_mode} "
             f"(max_xy={wh.max_xy_drift:.2f} m)."
         )
         if wp is not None and wp.max_xy_drift < wh.max_xy_drift:
@@ -207,7 +207,7 @@ def _breaking_points(wind_results, turn_results, wind_mps: float) -> dict:
             )
         elif wp is not None:
             narrative.append(
-                "Planner does NOT beat open-loop hover under wind — world-model "
+                "Planner does NOT beat open-loop hover under wind - world-model "
                 "station-keeping breaks here (heuristic map + latent plan insufficient)."
             )
 
@@ -215,17 +215,17 @@ def _breaking_points(wind_results, turn_results, wind_mps: float) -> dict:
     ts = turn_results.get("seek")
     if tp is not None:
         narrative.append(
-            f"Aggressive L-turn — planner: {tp.failure_mode} "
+            f"Aggressive L-turn - planner: {tp.failure_mode} "
             f"(legs {tp.waypoints_reached}/{tp.waypoints_total}). {tp.failure_detail}"
         )
     if ts is not None:
         narrative.append(
-            f"Aggressive L-turn — privileged seek PD: {ts.failure_mode} "
+            f"Aggressive L-turn - privileged seek PD: {ts.failure_mode} "
             f"(legs {ts.waypoints_reached}/{ts.waypoints_total})."
         )
         if tp is not None and (tp.waypoints_reached or 0) < (ts.waypoints_reached or 0):
             narrative.append(
-                "Breaking point: sharp 90° corner — reactive seek clears more legs than "
+                "Breaking point: sharp 90° corner - reactive seek clears more legs than "
                 "the perception-driven planner (heuristic map + short horizon)."
             )
         elif tp is not None and tp.failure_mode == "ok" and ts.failure_mode == "ok":

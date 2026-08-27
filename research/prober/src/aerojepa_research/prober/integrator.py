@@ -1,8 +1,8 @@
 """Differentiable integrators for AeroProber metric rollouts.
 
 **Use :class:`ControlIntegrator` for all leak-free / headline work.** It consumes
-exogenous PyFlyt controls ``(vp, vq, vr, T)`` — body-rate setpoints (rad/s) plus
-a *normalized* collective thrust — and advances
+exogenous PyFlyt controls ``(vp, vq, vr, T)`` - body-rate setpoints (rad/s) plus
+a *normalized* collective thrust - and advances
 ``(pos, vel, euler_att_deg, ang_vel_deg)`` with a first-order Euler step.
 
 Plant facts (z-up, mass default 1 kg, ``hover_thrust=0.39``, ``dt=0.025``):
@@ -10,7 +10,7 @@ Plant facts (z-up, mass default 1 kg, ``hover_thrust=0.39``, ``dt=0.025``):
     a_ang_nom = (deg(vp,vq,vr) - omega) / dt
 Residuals: world-frame linear + body-frame angular. Attitude is stored as an
 Euler chart with wrap; body rates ``(p,q,r)`` are converted to Euler rates
-before the chart step — **not** a Lie-group Exp update (see
+before the chart step - **not** a Lie-group Exp update (see
 ``docs/CORRECTNESS.md`` V5 and ``research/prober/note.md``). Angular residuals
 are typically scaled by 0.25 in ``Prober``.
 
@@ -214,8 +214,8 @@ def body_rates_to_euler_rates_deg(
 ) -> torch.Tensor:
     """Map body rates (p,q,r) [deg/s] → Euler chart rates (ψ̇,θ̇,φ̇) [deg/s].
 
-    ``euler_att_ypr_deg`` is (..., 3) yaw–pitch–roll. Near pitch ±90° the chart
-    is singular — prefer Exp on SO(3) (see ``so3_integrators``) for those regimes.
+    ``euler_att_ypr_deg`` is (..., 3) yaw-pitch-roll. Near pitch ±90° the chart
+    is singular - prefer Exp on SO(3) (see ``so3_integrators``) for those regimes.
     """
     ypr = torch.deg2rad(euler_att_ypr_deg)
     pitch = ypr[..., 1]

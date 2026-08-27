@@ -71,7 +71,7 @@ def run_attitude_coast(name: str, update_fn, horizon_s: float, dt: float, omega_
 
 
 def run_energy_freefall(dt: float, horizon_s: float):
-    """Point-mass freefall under gravity (no attitude) — energy is *not* conserved
+    """Point-mass freefall under gravity (no attitude) - energy is *not* conserved
     under explicit Euler on v,p; included only as a dissipation diagnostic caption."""
     steps = int(round(horizon_s / dt))
     g = -9.81
@@ -99,7 +99,7 @@ def main() -> None:
     args = parser.parse_args()
 
     horizons = [float(x) for x in args.horizons.split(",")]
-    omega_deg = torch.tensor([120.0, -80.0, 40.0])  # deg/s — persistently exciting
+    omega_deg = torch.tensor([120.0, -80.0, 40.0])  # deg/s - persistently exciting
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -117,7 +117,7 @@ def main() -> None:
         "claim": "constraint preservation (not energy conservation)",
         "citations": [
             "Marsden & West, Acta Numerica 2001 (variational integrators)",
-            "Lee–Leok–McClamroch, CDC 2010 (geometric tracking on SE(3))",
+            "Lee-Leok-McClamroch, CDC 2010 (geometric tracking on SE(3))",
             "SkyJEPA first-order Exp: Rao et al. arXiv:2606.23444",
         ],
         "integrators": {},
@@ -156,7 +156,7 @@ def main() -> None:
     axes[1].set_yscale("log")
     axes[1].set_title("Constraint vs horizon")
     axes[1].legend(fontsize=7)
-    fig.suptitle("Integrator bake-off — constraint preservation (not energy)", fontsize=10)
+    fig.suptitle("Integrator bake-off - constraint preservation (not energy)", fontsize=10)
     fig.tight_layout()
     fig_path = out_dir / "integrator_bakeoff.png"
     fig.savefig(fig_path, dpi=150)

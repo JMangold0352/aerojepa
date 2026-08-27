@@ -79,10 +79,10 @@ research/prober/
 
 Success criterion (structured pos < plain, non-overlapping bands): **MET**.
 
-Looped vs regular (structured prober): tie on position and attitude — looped
+Looped vs regular (structured prober): tie on position and attitude - looped
 predictor does not improve metric groundability.
 
-**Caveat:** the ~0.006 m tables above were trained **before** the PyFlyt GT
+the ~0.006 m tables above were trained **before** the PyFlyt GT
 unit/frame fix in `_obs_to_metric_state` (body vel→world, rates rad→deg). See
 [`docs/CORRECTNESS.md`](../../docs/CORRECTNESS.md).
 

@@ -1,8 +1,8 @@
 """Gated / body-frame residual prober variants (body vs world invariance).
 
-A. UngatedWorldProber — world-frame residual accel = MLP(s, u)  [current default]
-B. GatedBodyProber — a_world = (T/m) R e3 - g + R a_body(s, u)
-C. PartialGateProber — only rz (thrust axis) gated; yaw free in residual frame
+A. UngatedWorldProber - world-frame residual accel = MLP(s, u)  [current default]
+B. GatedBodyProber - a_world = (T/m) R e3 - g + R a_body(s, u)
+C. PartialGateProber - only rz (thrust axis) gated; yaw free in residual frame
 
 SkyJEPA's Δv̇ residual is world-frame without this invariance test.
 """
@@ -17,7 +17,7 @@ from aerojepa_research.prober.prober import CONTROL_DIM, ENCODER_DIM, Prober
 
 
 class UngatedWorldProber(Prober):
-    """Alias of :class:`Prober` — world-frame linear residual (variant A)."""
+    """Alias of :class:`Prober` - world-frame linear residual (variant A)."""
 
     variant = "A_ungated_world"
 
@@ -59,7 +59,7 @@ class GatedBodyProber(nn.Module):
     def body_residual(
         self, latent: torch.Tensor, controls: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Return (a_body, a_ang) — linear residual in body frame."""
+        """Return (a_body, a_ang) - linear residual in body frame."""
         return self.inner(latent, controls)
 
     def forward(

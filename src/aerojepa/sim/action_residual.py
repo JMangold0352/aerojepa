@@ -28,7 +28,7 @@ AERO_DIM = 6
 class ActionResidualHead(nn.Module):
     """Maps (pooled latent, heuristic PyFlyt control, AeroJEPA action) → Δcontrol.
 
-    Kept deliberately tiny (~1–3k params) so it is a residual corrector, not a
+    Kept deliberately tiny (~1-3k params) so it is a residual corrector, not a
     second controller.
     """
 

@@ -19,7 +19,7 @@ AeroProber is a lightweight prober head that converts latent rollouts from a
 | Frozen encoder | ViT, 192-d, 6 blocks (from parent checkpoint) |
 | Frozen predictor | regular (single-pass) or looped (`max_loops=3`) |
 | Prober (ψ) | MLP, ~5k params (`hidden=24`, 2 layers) |
-| Prober input | latent (192-d) + **raw control** `(vp, vq, vr, T)` — 4-d, leak-free |
+| Prober input | latent (192-d) + **raw control** `(vp, vq, vr, T)` - 4-d, leak-free |
 | Integrator | `ControlIntegrator`: thrust/torque nominal model + residual accelerations |
 | Prober output | residual linear + angular acceleration (3 + 3) |
 | Loss | multi-horizon MSE with wrapped-angle attitude error |
@@ -51,10 +51,10 @@ position relative to \(t=0\) in-sim. **Not** comparable to SkyJEPA outdoor RMSE.
 
 Pre-registered success criterion (structured position < plain, non-overlapping): **met**.
 
-**Caveat:** these tables were trained **before** the PyFlyt GT unit/frame fix
+These tables were trained **before** the PyFlyt GT unit/frame fix
 (body vel→world, rates rad→deg). See [`docs/CORRECTNESS.md`](../docs/CORRECTNESS.md).
 
-**Looped vs regular (structured):** tie — negative result on adaptive compute helping metric groundability.
+**Looped vs regular (structured):** tie - negative result on adaptive compute helping metric groundability.
 
 **Real (Parrot Wilds), 15 clips** (`results/real_data_v3/`):
 
@@ -62,13 +62,13 @@ Pre-registered success criterion (structured position < plain, non-overlapping):
 | --- | --- | --- |
 | velocity RMSE | 1.29 ± 0.62 m/s | 0.075 m/s |
 | attitude RMSE | 33.6 ± 29.4 deg | 2.28 deg |
-| altitude RMSE | 5.69 ± 6.97 m | — |
+| altitude RMSE | 5.69 ± 6.97 m | - |
 
 Eval uses zero controls (no motor telemetry). Large sim-to-real gap remains.
 
 ## Limitations
 
-- Euler angles (not SO(3)) — gimbal lock possible for aggressive maneuvers.
+- Euler angles (not SO(3)) - gimbal lock possible for aggressive maneuvers.
 - Real-data position x/y is dead-reckoned (no GPS).
 - Sim-to-real gap: prober trained on PyFlyt, evaluated on Wilds.
 - Wilds eval uses zero controls (motor commands unavailable); nominal physics is gravity-only at eval time.
@@ -79,5 +79,5 @@ Eval uses zero controls (no motor telemetry). Large sim-to-real gap remains.
 [SkyJEPA](https://arxiv.org/abs/2606.23444) (Rao et al., 2026) is a state-history
 JEPA with a physics-inspired prober and outdoor MPPI. AeroProber asks the same
 *family* of question for **video** latents. Key addition: looped-vs-regular
-metric groundability (currently a **tie**). Do not compare short-horizon sim RMSE
-here to SkyJEPA outdoor numbers. See `research/prober/note.md`.
+metric groundability (currently a **tie**). Short-horizon sim RMSE here is not
+comparable to SkyJEPA outdoor numbers. See `research/prober/note.md`.

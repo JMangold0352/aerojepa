@@ -11,7 +11,7 @@ data:
   data_dir: data/flights_128
   batch_size: 16
   num_workers: 0
-  window_stride: 8          # fewer windows than stride 4 — faster epochs, still plenty of data
+  window_stride: 8          # fewer windows than stride 4 - faster epochs, still plenty of data
 
 train:
   init_checkpoint: checkpoints/real_finetune/latest.pt

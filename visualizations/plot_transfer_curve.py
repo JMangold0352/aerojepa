@@ -3,7 +3,7 @@
 
 Reads ``results/transfer_curve/summary.json`` and writes:
 
-  transfer_curve.png / transfer_curve.pdf — dual panel (gap + rollout @ h=4)
+  transfer_curve.png / transfer_curve.pdf - dual panel (gap + rollout @ h=4)
 
 Examples::
 

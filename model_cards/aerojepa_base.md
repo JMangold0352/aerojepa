@@ -54,9 +54,9 @@ python scripts/evaluate.py --checkpoint checkpoints/looped/latest.pt
 | Metric | baseline | looped | How |
 | --- | ---: | ---: | --- |
 | Latent cosine (synthetic val) | 0.954 | **0.961** | `results/*_eval.json` |
-| vs baseline delta | — | **+0.007** | `results/comparison.json` |
-| Per-loop cosine | — | 0.940 → 0.959 | `results/looped_eval.json` |
-| Expected loops | — | 1.50 | exit gate |
+| vs baseline delta | - | **+0.007** | `results/comparison.json` |
+| Per-loop cosine | - | 0.940 → 0.959 | `results/looped_eval.json` |
+| Expected loops | - | 1.50 | exit gate |
 
 ## Load and run
 

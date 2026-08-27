@@ -4,7 +4,7 @@ Same residual / control plant; only the attitude update changes:
 1. Euclidean Euler on R as R^9 (leaves SO(3))
 2. First-order Exp: R <- R exp([ω]_× dt)  (SkyJEPA-style)
 3. RK4 on so(3)
-4. Lie-group variational / implicit midpoint (Marsden–West style, short form)
+4. Lie-group variational / implicit midpoint (Marsden-West style, short form)
 
 Claim **constraint preservation**, never energy conservation (forced + drag).
 """
@@ -210,8 +210,8 @@ class LGVIMidpoint(AttitudeIntegratorBase):
 
     Discrete: R_{k+1} = R_k Exp(ω_mid dt) with ω_mid ≈ ω_k (explicit midpoint
     with frozen rate). Full implicit solve omitted when residual plant already
-    uses first-order rate hold — this is the short feasible form cited in
-    Marsden & West 2001 / Lee–Leok–McClamroch geometric tracking spirit.
+    uses first-order rate hold - this is the short feasible form cited in
+    Marsden & West 2001 / Lee-Leok-McClamroch geometric tracking spirit.
     """
 
     name = "lgvi_midpoint"

@@ -10,7 +10,7 @@ JSON metrics from evaluation runs. Regenerate with:
 
 | Model | Latent cosine | Rollout h=4 | Loops | File |
 | --- | ---: | ---: | ---: | --- |
-| baseline | 0.954 | 0.917 | — | [`baseline_eval.json`](baseline_eval.json) |
+| baseline | 0.954 | 0.917 | - | [`baseline_eval.json`](baseline_eval.json) |
 | looped | 0.961 | 0.925 | 1.50 | [`looped_eval.json`](looped_eval.json) |
 | world_model | 0.981 | 0.973 | 1.75 | [`world_model_eval.json`](world_model_eval.json) |
 | action_conditioned | 0.980 | 0.975 | 1.75 | [`action_conditioned_eval.json`](action_conditioned_eval.json) |
@@ -25,12 +25,12 @@ Controlled variant suite on the same synthetic recipe.
 | --- | ---: | --- |
 | `python scripts/run_ablations.py --mode quick` | 20 | Fast iteration signal |
 | `python scripts/run_ablations.py --mode full` | 100 | Publication-quality table |
-| `python scripts/run_ablations.py --eval-only` | — | Re-score existing `checkpoints/ablations/` |
+| `python scripts/run_ablations.py --eval-only` | - | Re-score existing `checkpoints/ablations/` |
 
 Summary: [`ablations/summary.json`](ablations/summary.json) (includes rollout + per-loop metrics).
 Per-variant: `ablations/{baseline,loops_2,loops_3,world_model}.json`.
 
-Figures: [`../visualizations/figures/ablations/`](../visualizations/figures/ablations/) —
+Figures: [`../visualizations/figures/ablations/`](../visualizations/figures/ablations/) -
 regenerate with `python visualizations/compare_ablations.py`.
 
 ## Transfer curve (sim-to-real vs data volume)

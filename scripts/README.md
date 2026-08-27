@@ -27,7 +27,7 @@ automatically, so they run from a plain checkout (no `pip install -e .` needed).
 | `tello_compare_report.py` | Compare Wilds-only vs Tello-fine-tuned checkpoints on personal footage. |
 | `run_transfer_curve.py` | Sim-to-real transfer curve vs real-data volume (1 / 5 / 15 clips). |
 | `evaluate_real.py` | Compare synthetic-vs-real metrics for a checkpoint (sim-to-real gap). |
-| `launch_training.sh` | **Long runs from Terminal.app** — caffeinate + nohup + timestamped logs. Supports `--resume`. |
+| `launch_training.sh` | **Long runs from Terminal.app** - caffeinate + nohup + timestamped logs. Supports `--resume`. |
 | `launch_in_terminal.sh` | Train all four synthetic recipes back-to-back (legacy all-day script). |
 | `gradio_demo.py` | Launch the interactive demo (same as `python app.py`). |
 

@@ -3,7 +3,7 @@
 ## Overview
 
 Unconditioned world-model fine-tune on **The Wilds Drones** Parrot clips. Best
-**representation** checkpoint for sim-to-real tables — not the closed-loop default
+**representation** checkpoint for sim-to-real tables - not the closed-loop default
 (that needs action conditioning; see
 [aerojepa_action_wilds](aerojepa_action_wilds.md)).
 
@@ -54,4 +54,4 @@ Source: [`results/real_finetune_fast_eval.json`](../results/real_finetune_fast_e
 ## Out of scope
 
 - Closed-loop gradient planning with residuals (use action Wilds stack)
-- Claiming “trained at 128×128” — storage resolution ≠ model input
+- Claiming “trained at 128×128” - storage resolution ≠ model input

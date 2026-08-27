@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Compare closed-loop metrics: heuristic map vs learned residual.
 
-Runs the same hover (and optional waypoint) closed-loop demo twice — once with
-the hand-crafted AeroJEPA→PyFlyt map, once with a trained ActionResidualHead —
+Runs the same hover (and optional waypoint) closed-loop demo twice - once with
+the hand-crafted AeroJEPA→PyFlyt map, once with a trained ActionResidualHead -
 and writes a side-by-side JSON.
 
 Example::

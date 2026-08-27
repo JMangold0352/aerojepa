@@ -152,7 +152,7 @@ def main() -> None:
         "frame_invariance": inv,
         "variants": {},
         "prediction": (
-            "Gated body residual should win at 1–5 s with a t^2 signature, "
+            "Gated body residual should win at 1-5 s with a t^2 signature, "
             "not necessarily at 0.1 s (4 frames)."
         ),
     }

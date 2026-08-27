@@ -4,12 +4,12 @@
 Reads ``results/ablations/summary.json`` (or per-variant JSON files) and writes
 high-DPI figures to ``visualizations/figures/ablations/``:
 
-  01_latent_cosine_bar.png      — headline metric across variants
-  02_smooth_l1_bar.png          — complementary distance metric
-  03_per_loop_cosine.png        — refinement gain per loop (looped variants)
-  04_rollout_comparison.png     — rollout cosine vs horizon, all variants
-  05_rollout_panel.png          — side-by-side rollout curves (faceted)
-  06_rollout_comparison.gif     — animated build-up of rollout curves
+  01_latent_cosine_bar.png      - headline metric across variants
+  02_smooth_l1_bar.png          - complementary distance metric
+  03_per_loop_cosine.png        - refinement gain per loop (looped variants)
+  04_rollout_comparison.png     - rollout cosine vs horizon, all variants
+  05_rollout_panel.png          - side-by-side rollout curves (faceted)
+  06_rollout_comparison.gif     - animated build-up of rollout curves
 
 Examples::
 
@@ -39,7 +39,7 @@ for _p in (_ROOT / "src", _ROOT):
 
 from aerojepa.viz.style import DPI, PALETTE, apply_style
 
-# Display order and colors — baseline blue, looped orange, world model green.
+# Display order and colors - baseline blue, looped orange, world model green.
 VARIANT_ORDER = ["baseline", "loops_2", "loops_3", "world_model"]
 VARIANT_LABELS = {
     "baseline": "baseline\n(feed-forward)",
@@ -222,7 +222,7 @@ def plot_rollout_comparison(rollouts: dict, out_dir: Path, meta: dict) -> Path |
 
 
 def plot_rollout_panel(rollouts: dict, out_dir: Path, meta: dict) -> Path | None:
-    """Side-by-side small multiples — one rollout curve per variant."""
+    """Side-by-side small multiples - one rollout curve per variant."""
     if not rollouts:
         return None
     names = _ordered_variants(rollouts)
@@ -279,7 +279,7 @@ def plot_rollout_gif(rollouts: dict, out_dir: Path, meta: dict) -> Path | None:
             )
         ax.set_xlabel("prediction horizon (frames ahead)")
         ax.set_ylabel("latent cosine similarity")
-        ax.set_title(f"Rollout comparison — {step}/{len(names)} variants")
+        ax.set_title(f"Rollout comparison - {step}/{len(names)} variants")
         ax.set_ylim(ylo, 1.02)
         ax.legend(loc="best", fontsize=9)
         fig.tight_layout()

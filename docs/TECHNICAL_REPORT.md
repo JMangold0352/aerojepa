@@ -6,7 +6,7 @@ Architecture and design notes for the initial release. Measured results live in
 ## 1. Motivation
 
 Perception for autonomy is often framed as recognition: label the frame. A drone
-also needs to **anticipate** — predict the near future of its sensory stream so
+also needs to **anticipate** - predict the near future of its sensory stream so
 it can plan around obstacles and motion with less labeled data than a supervised
 detector.
 

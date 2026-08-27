@@ -29,7 +29,7 @@ python visualizations/compare_ablations.py
 | --- | --- |
 | `ablations/01_latent_cosine_bar.png` | Headline latent cosine across ablation variants. |
 | `ablations/02_smooth_l1_bar.png` | Complementary smooth-L1 distance (lower is better). |
-| `ablations/03_per_loop_cosine.png` | Refinement gain per loop — the curve that separates variants at 20 ep. |
+| `ablations/03_per_loop_cosine.png` | Refinement gain per loop - the curve that separates variants at 20 ep. |
 | `ablations/04_rollout_comparison.png` | Rollout cosine vs horizon, all variants on one axis. |
 | `ablations/05_rollout_panel.png` | Side-by-side rollout small multiples. |
 | `ablations/06_rollout_comparison.gif` | Animated build-up of rollout curves. |

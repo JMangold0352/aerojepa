@@ -4,7 +4,7 @@ Bridges the research gap between :class:`~aerojepa.sim.planner.LatentPlanner`
 (plans in AeroJEPA's 6-DoF action space from egocentric video) and a real
 physics simulator (PyFlyt QuadX, which expects angular-rate + thrust commands).
 
-This is a research demo loop — not a flight controller. The action map is a
+This is a research demo loop - not a flight controller. The action map is a
 deliberately simple heuristic so the full stack (camera → world model → plan →
 physics) is runnable end-to-end and comparable against inert / random / seek
 baselines.
@@ -37,7 +37,7 @@ DEFAULT_RECOVER_XY_THRESHOLD = 0.40
 DEFAULT_DISTURB_AT = 30
 DEFAULT_DISTURB_STEPS = 18
 # Empirically +vq moves +x on QuadX-Hover-v4. Sized so a pure hover
-# hold after the kick stays displaced (~0.5–1 m), while seek/planner can home.
+# hold after the kick stays displaced (~0.5-1 m), while seek/planner can home.
 DEFAULT_DISTURB_ACTION = (0.0, 0.75, 0.0, DEFAULT_HOVER_THRUST)
 DEFAULT_MIN_KICK_XY = 0.35
 DEFAULT_DAMP_STEPS = 15
@@ -48,7 +48,7 @@ DEFAULT_BRAKE_VEL = 0.6
 DEFAULT_DAMP_MAX_STEPS = 60
 
 # Stress-test defaults (moderate wind first; keep heuristic map unchanged).
-DEFAULT_WIND_MPS = 2.0  # m/s constant lateral gust — noticeable but hoverable
+DEFAULT_WIND_MPS = 2.0  # m/s constant lateral gust - noticeable but hoverable
 DEFAULT_WIND_ONSET = 40  # settle steps before wind engages
 DEFAULT_WIND_DRIFT_FAIL = 1.5  # meters; beyond this under wind = excessive_drift
 DEFAULT_AGGRESSIVE_LEG1 = (0.5, 0.0, 0.0)  # first leg of the L-turn (survivable)
@@ -78,7 +78,7 @@ def aerojepa_to_pyflyt(
 ) -> np.ndarray:
     """Map one AeroJEPA action ``[dx, dy, d_alt, d_yaw, d_pitch, d_roll]`` to PyFlyt.
 
-    PyFlyt QuadX expects ``(vp, vq, vr, T)`` — body angular-rate setpoints plus
+    PyFlyt QuadX expects ``(vp, vq, vr, T)`` - body angular-rate setpoints plus
     collective thrust in ``[0, 0.8]``.
 
     Empirically on ``QuadX-Hover-v4`` (euler): ``+vq`` moves ``+x``, ``-vp``
@@ -229,7 +229,7 @@ def classify_failure_mode(
     altitude_collapse: float = DEFAULT_ALTITUDE_COLLAPSE,
     flight_dome_size: float = 8.0,
 ) -> tuple[str, str]:
-    """Return ``(failure_mode, detail)`` — ``ok`` when the episode succeeds."""
+    """Return ``(failure_mode, detail)`` - ``ok`` when the episode succeeds."""
     # Ground contact vs dome/flip: both set terminated, but z tells them apart.
     if terminated and final_altitude <= altitude_collapse:
         return "crash", f"ground contact (z={final_altitude:.2f})"
@@ -266,7 +266,7 @@ def classify_failure_mode(
             return "missed_turn", "never reached the first leg (failed to commit)"
         return (
             "missed_turn",
-            f"cleared {waypoints_reached}/{waypoints_total} legs — broke at the corner",
+            f"cleared {waypoints_reached}/{waypoints_total} legs - broke at the corner",
         )
 
     if task == "waypoint":
@@ -407,12 +407,12 @@ def run_closed_loop_episode(
     """Run one PyFlyt episode under ``policy`` and return metrics (+ optional RGB).
 
     ``task``:
-      * ``hover`` / ``waypoint`` / ``smoothness`` — LatentPlanner cost names
-      * ``recover`` — settle, apply a lateral kick, then return toward start
+      * ``hover`` / ``waypoint`` / ``smoothness`` - LatentPlanner cost names
+      * ``recover`` - settle, apply a lateral kick, then return toward start
         (planner uses waypoint cost on remaining displacement home)
-      * ``wind_gust`` — hover hold under a moderate constant wind field
+      * ``wind_gust`` - hover hold under a moderate constant wind field
         (same heuristic action map; stress-tests station-keeping)
-      * ``aggressive_turn`` — L-shaped two-leg course that forces a sharp 90° turn
+      * ``aggressive_turn`` - L-shaped two-leg course that forces a sharp 90° turn
     """
     known = set(COST_FUNCTIONS) | {"recover"} | STRESS_TASKS
     if task not in known:
@@ -451,7 +451,7 @@ def run_closed_loop_episode(
         cost_weights = MultiStepCostWeights(
             pos_terminal=1.2,
             pos_running=0.15,
-            vel_terminal=1.2,  # arrive slow — kills corner overshoot
+            vel_terminal=1.2,  # arrive slow - kills corner overshoot
             vel_running=0.15,
             attitude=0.5,
             attitude_rate=0.25,
@@ -535,7 +535,7 @@ def run_closed_loop_episode(
         z_des = float(goal_world[2])
 
     # Moderate wind: register after reset so the aviary is live. Same heuristic
-    # action map as every other task — wind is the only new stressor.
+    # action map as every other task - wind is the only new stressor.
     wind_vec = None
     if task == "wind_gust":
         direction = np.asarray(wind_direction, dtype=np.float64).reshape(3)
@@ -602,7 +602,7 @@ def run_closed_loop_episode(
                 pending.clear()  # force replan after the knock
             elif phase == "damp":
                 # Actively kill lateral momentum (lean against velocity) rather
-                # than passively hovering — passive coast leaves the craft too
+                # than passively hovering - passive coast leaves the craft too
                 # hot for any recovery policy to bring home upright.
                 action = _brake_action(obs, hover_thrust=hover_thrust)
                 pending.clear()
@@ -659,7 +659,7 @@ def run_closed_loop_episode(
                 action = pending.pop(0)
                 # Blend a light seek PD during recover so the heuristic action
                 # map cannot fling the drone after the kick (research demo
-                # stabilizer — not a claim that planning alone is sufficient).
+                # stabilizer - not a claim that planning alone is sufficient).
                 # Lower ``recover_seek_blend`` to attribute more of the recovery
                 # to the planner itself (used to compare planner modes).
                 if task == "recover" and phase == "recover":
@@ -734,7 +734,7 @@ def run_closed_loop_episode(
                 post_disturb_max_xy = max(post_disturb_max_xy, xy)
             if task == "recover" and step >= damp_end:
                 # Only count recovery after a real knock (peak XY above min_kick_xy).
-                # Require still aloft (z>0.25); do not demand exact return to z0 —
+                # Require still aloft (z>0.25); do not demand exact return to z0 -
                 # altitude PD is approximate and recovery is primarily an XY task.
                 if (
                     not recovered

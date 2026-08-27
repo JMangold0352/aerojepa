@@ -12,7 +12,7 @@ Figure: ``results/transfer_curve/transfer_curve.png`` (and PDF).
 
 Examples::
 
-    # Full curve (~15–25 min on MPS with 5 epochs per point):
+    # Full curve (~15-25 min on MPS with 5 epochs per point):
     python scripts/run_transfer_curve.py --device mps
 
     # Quick smoke (1 clip, 1 epoch):

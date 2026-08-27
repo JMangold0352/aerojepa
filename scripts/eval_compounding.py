@@ -232,7 +232,7 @@ def _plot(report: dict, out_png: Path) -> None:
         axes[2].axis("off")
 
     fig.suptitle(
-        "Compounding / metric vs horizon — relative pos; do not compare to SkyJEPA outdoor RMSE",
+        "Compounding / metric vs horizon - relative pos; do not compare to SkyJEPA outdoor RMSE",
         fontsize=9,
     )
     fig.tight_layout()
@@ -333,7 +333,7 @@ def main() -> None:
                 "horizons (s):",
                 po["horizon_seconds"],
             )
-        except Exception as exc:  # noqa: BLE001 — report and continue
+        except Exception as exc:  # noqa: BLE001 - report and continue
             report["physics_only_error"] = str(exc)
             print(f"physics-only skipped: {exc}")
 

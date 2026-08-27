@@ -27,7 +27,7 @@ Examples::
         --planner gradient --latent-smooth 0.05 \\
         --task recover --max-steps 220
 
-Do not use ``*_wilds_v2`` checkpoints as defaults (worse protocol-B / soft turn).
+``*_wilds_v2`` checkpoints are worse on protocol-B / soft turn and are not defaults.
 
 Requires optional deps: ``pip install PyFlyt gymnasium``.
 """
@@ -281,7 +281,7 @@ def main() -> None:
             f"{'legs':>8} {'fail':>16} {'ok':>5}"
         )
         for name, ep in out.results.items():
-            legs = "—"
+            legs = "-"
             if ep.waypoints_total:
                 legs = f"{ep.waypoints_reached}/{ep.waypoints_total}"
             elif ep.reached is not None:
@@ -289,7 +289,7 @@ def main() -> None:
             print(
                 f"{name:<10} {ep.steps:6d} {ep.total_reward:10.2f} "
                 f"{(ep.min_goal_distance or 0):10.3f} {legs:>8} "
-                f"{(ep.failure_mode or '—'):>16} {str(ep.survived):>5}"
+                f"{(ep.failure_mode or '-'):>16} {str(ep.survived):>5}"
             )
             if ep.failure_detail:
                 print(f"           └─ {ep.failure_detail}")
@@ -299,11 +299,11 @@ def main() -> None:
             f"{'xy_end':>10} {'fail':>16} {'ok':>5}"
         )
         for name, ep in out.results.items():
-            rec = "—" if ep.recovery_steps is None else str(ep.recovery_steps)
+            rec = "-" if ep.recovery_steps is None else str(ep.recovery_steps)
             print(
                 f"{name:<10} {ep.steps:6d} {ep.total_reward:10.2f} "
                 f"{rec:>10} {ep.xy_drift:10.3f} "
-                f"{(ep.failure_mode or '—'):>16} {str(ep.survived):>5}"
+                f"{(ep.failure_mode or '-'):>16} {str(ep.survived):>5}"
             )
             if ep.failure_detail:
                 print(f"           └─ {ep.failure_detail}")
@@ -316,7 +316,7 @@ def main() -> None:
             print(
                 f"{name:<10} {ep.steps:6d} {ep.total_reward:10.2f} "
                 f"{ep.altitude_mae:10.3f} {ep.max_xy_drift:10.3f} "
-                f"{(ep.failure_mode or '—'):>16} {str(ep.survived):>5}"
+                f"{(ep.failure_mode or '-'):>16} {str(ep.survived):>5}"
             )
             if ep.failure_detail:
                 print(f"           └─ {ep.failure_detail}")
@@ -329,7 +329,7 @@ def main() -> None:
             print(
                 f"{name:<10} {ep.steps:6d} {ep.total_reward:10.2f} "
                 f"{ep.altitude_mae:10.3f} {ep.xy_drift:10.3f} "
-                f"{(ep.failure_mode or '—'):>16} {str(ep.survived):>5}"
+                f"{(ep.failure_mode or '-'):>16} {str(ep.survived):>5}"
             )
             if ep.failure_detail:
                 print(f"           └─ {ep.failure_detail}")

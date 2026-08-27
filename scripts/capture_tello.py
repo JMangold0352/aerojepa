@@ -31,12 +31,12 @@ import sys
 import _bootstrap  # noqa: F401
 
 SAFETY_BANNER = """
-============================ TELLO CAPTURE — SAFETY ============================
+============================ TELLO CAPTURE - SAFETY ============================
  * This tool records only. A HUMAN PILOT must fly the drone manually.
  * Fly in a large, open space; keep props clear of people, pets, and hands.
  * Check battery >= --min-battery. A low battery risks an uncontrolled landing.
  * Indoors: good lighting, no wind; watch for downwash near walls/ceilings.
- * Stop with Ctrl-C at any time — the video stream is closed cleanly on exit.
+ * Stop with Ctrl-C at any time - the video stream is closed cleanly on exit.
  * You are responsible for airspace/regulatory compliance (see data/README.md).
 ===============================================================================
 """
@@ -68,9 +68,9 @@ def main() -> None:
 
         info = preflight_check(min_battery=args.min_battery)
         print("\n=== Tello preflight checklist ===")
-        print(f"  opencv-python     : {'OK' if info.get('opencv') else 'MISSING — pip install opencv-python'}")
-        print(f"  djitellopy        : {'OK' if info.get('djitellopy') else 'MISSING — pip install djitellopy'}")
-        print(f"  Wi-Fi ({info.get('tello_host')}): {'OK' if info.get('wifi_reachable') else 'FAIL — join Tello Wi-Fi'}")
+        print(f"  opencv-python     : {'OK' if info.get('opencv') else 'MISSING - pip install opencv-python'}")
+        print(f"  djitellopy        : {'OK' if info.get('djitellopy') else 'MISSING - pip install djitellopy'}")
+        print(f"  Wi-Fi ({info.get('tello_host')}): {'OK' if info.get('wifi_reachable') else 'FAIL - join Tello Wi-Fi'}")
         if info.get("battery") is not None:
             print(f"  battery           : {info['battery']}% (min {info['min_battery']}%)")
             print(f"  temperature       : {info.get('temperature_c')} °C")

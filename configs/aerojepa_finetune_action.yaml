@@ -15,7 +15,7 @@ data:
   window_mode: sliding
   window_stride: 8
   pad_short: true
-  # img_size: 64  (inherited — do not set 128 without a new architecture recipe)
+  # img_size: 64  (inherited - do not set 128 without a new architecture recipe)
 
 train:
   init_checkpoint: checkpoints/action_conditioned/latest.pt

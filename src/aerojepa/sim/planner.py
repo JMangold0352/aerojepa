@@ -112,12 +112,12 @@ def differentiable_plan_cost(
         (hold the current position).
     pred_latents : (N, H, S, D) imagined future latents. When provided together
         with ``weights.latent_smooth > 0``, a latent-smoothness term couples the
-        plan to the world model — this is what makes it planning *in latent
+        plan to the world model - this is what makes it planning *in latent
         space* rather than pure kinematics.
     init_velocity : (3,) current translational velocity carried into the plan
         (a first-order momentum model). When given, the effective per-step
         velocity is ``planned_delta + init_velocity``, so the optimizer plans
-        *braking* actions to arrest existing motion — essential for recovering
+        *braking* actions to arrest existing motion - essential for recovering
         from a disturbance rather than only chasing a position goal.
 
     Returns
@@ -201,7 +201,7 @@ class PlanResult:
 class LatentPlanner:
     """Random-shooting planner that imagines action sequences with the world model.
 
-    Optional ``residual_head`` does **not** change imagination / scoring — it is
+    Optional ``residual_head`` does **not** change imagination / scoring - it is
     only consulted by closed-loop execution helpers when mapping the winning
     AeroJEPA actions to PyFlyt controls.
     """
@@ -466,7 +466,7 @@ class LatentPlanner:
         position, velocity, and attitude, optionally coupled to the world model's
         imagined latents). Gradients flow through the frozen action-conditioned
         predictor back to the actions, so the plan is *optimized*, not just
-        sampled. Keeps the horizon small (3–5 steps) by design.
+        sampled. Keeps the horizon small (3-5 steps) by design.
         """
         context_frames = context_clip.shape[0]
         horizon = self._resolve_horizon(context_frames, horizon)

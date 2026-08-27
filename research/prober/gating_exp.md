@@ -23,7 +23,7 @@ Implemented in `aerojepa_research.prober.gating.frame_invariance_test`.
 
 ## Prediction
 
-Gated body should win at **1–5 s** with a \(t^2\) signature
+Gated body should win at **1-5 s** with a \(t^2\) signature
 (\(\sim\tfrac12 g\theta t^2\)), not necessarily at the headline **0.1 s**
 (4 frames, \(\Delta t=0.025\)).
 

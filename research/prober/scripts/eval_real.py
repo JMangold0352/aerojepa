@@ -169,7 +169,7 @@ def main():
 
     prober = Prober().to(device)
     ckpt = torch.load(args.prober, map_location=device, weights_only=False)
-    # Older checkpoints lack ang_residual_scale buffer — load with defaults.
+    # Older checkpoints lack ang_residual_scale buffer - load with defaults.
     missing, unexpected = prober.load_state_dict(ckpt["model"], strict=False)
     if missing or unexpected:
         print(f"[real] state_dict notes missing={missing} unexpected={unexpected}")
@@ -214,7 +214,7 @@ def main():
             gravity = float(args.gravity)
         elif args.controls == "zeros":
             # Weaker nominal when motors are unknown (note.md §8): do not force
-            # free-fall under T=0 — residual + init state carry dynamics.
+            # free-fall under T=0 - residual + init state carry dynamics.
             gravity = 0.0
         else:
             gravity = -9.81

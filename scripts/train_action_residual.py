@@ -8,7 +8,7 @@ the residual small.
     û = clip( heuristic(a_6) + residual(z, heuristic(a_6), a_6) )
     L = ||û - u_gt||² + λ ||residual||²
 
-The world model stays frozen; only the residual MLP (~1–3k params) is trained.
+The world model stays frozen; only the residual MLP (~1-3k params) is trained.
 
 Example::
 

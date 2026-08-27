@@ -1,4 +1,4 @@
-# Closed-loop stress suite — breaking points
+# Closed-loop stress suite - breaking points
 
 **Checkpoint (baseline map):** `checkpoints/action_conditioned/latest.pt`  
 **Artifacts:** `visualizations/closed_loop/stress/`
@@ -20,7 +20,7 @@
 | hover | 0.79 m | `ok` |
 | random | 6.23 m | `crash` |
 
-Planner survived but drifted more than doing nothing — over-correction under sustained wind.
+Planner survived but drifted more than doing nothing - over-correction under sustained wind.
 
 ### Aggressive turn (hard 0.8 m legs, early runs)
 
@@ -43,7 +43,7 @@ Wind-augmented / multi-stress residual + gradient planner. Numbers from
 | --- | ---: | ---: | --- |
 | wind_gust (2 m/s) | 0% | 100% | Full stack beats hover max XY |
 | aggressive_turn (hard 0.8 m) | 0% | 100% | Soft course also improved |
-| recover | — | 100% | Adaptive brake after kick (shared) |
+| recover | - | 100% | Adaptive brake after kick (shared) |
 | hover | 100% | 100% | Tighter station-keeping with residual |
 
 Recover survival is mostly the brake; the planner’s edge is recovery speed.

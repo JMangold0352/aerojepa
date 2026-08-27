@@ -5,12 +5,12 @@ Two independent fixes for the sim-to-real gap:
 1. **Body → world velocity.** Parrot logs store body-frame velocities; the
    ControlIntegrator predicts world-frame velocity. Comparing them raw inflates
    Wilds velocity RMSE. Rotate GT body velocity by the GT attitude before
-   scoring (geometry only — zero parameters, no action leak).
+   scoring (geometry only - zero parameters, no action leak).
 
 2. **Eval control priors.** Parrot logs lack motor commands. Options:
    - ``zeros``: gravity-only nominal (original stress test).
    - ``hover``: constant thrust prior matching the PyFlyt hover setpoint
-     (~0.39), rates zero. Exogenous constant — not derived from GT velocity
+     (~0.39), rates zero. Exogenous constant - not derived from GT velocity
      or pose-delta actions (avoids the v2 leak pattern).
 
 IMU rate setpoints are intentionally *not* offered as a default: feeding
@@ -62,8 +62,8 @@ def make_eval_controls(
     """Build (num_frames, 4) control tensor for Wilds eval.
 
     ``mode``:
-      * ``zeros`` — no motor prior (original protocol).
-      * ``hover`` — constant ``(0,0,0,hover_thrust)`` exogenous prior.
+      * ``zeros`` - no motor prior (original protocol).
+      * ``hover`` - constant ``(0,0,0,hover_thrust)`` exogenous prior.
     """
     controls = torch.zeros(num_frames, 4, device=device, dtype=dtype)
     if mode == "zeros":

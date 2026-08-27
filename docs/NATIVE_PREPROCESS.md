@@ -4,7 +4,7 @@ Small optional accelerator for video frame-index selection during
 `scripts/preprocess_real.py`. Training, models, and the prober never depend on it.
 
 **Status:** Phase A only (`select_indices` + Python dispatch + parity tests).
-Further decode/encode work is **deferred** — OpenCV remains the default path.
+Further decode/encode work is **deferred** - OpenCV remains the default path.
 
 ## Install (optional)
 
@@ -28,7 +28,7 @@ python scripts/preprocess_real.py ... --backend opencv  # force OpenCV
 | `tests/test_preprocess_backend.py` | Backend selection / parity |
 
 If the Rust module is missing or raises, preprocess falls back to OpenCV and
-continues. Do not make training fail on a native import error.
+continues (training should not fail on a native import error).
 
 ## Out of scope (for now)
 

@@ -155,7 +155,7 @@ def _verdict(report: dict) -> str:
     )
     if uses:
         return (
-            "PASS: true actions beat zero and shuffle on latent metrics — "
+            "PASS: true actions beat zero and shuffle on latent metrics - "
             "predictor is action-sensitive."
         )
     return (
@@ -180,7 +180,7 @@ def _plot(report: dict, out_png: Path) -> None:
     axes[1].set_title("Counterfactual L1")
 
     fig.suptitle(
-        f"Action counterfactuals — {Path(report['checkpoint']).parent.name}\n"
+        f"Action counterfactuals - {Path(report['checkpoint']).parent.name}\n"
         f"{report['verdict'][:80]}…",
         fontsize=10,
     )

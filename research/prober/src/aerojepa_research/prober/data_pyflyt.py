@@ -156,10 +156,10 @@ def generate_clip(
 
     The drone is driven by:
 
-    * ``random`` — small random PyFlyt controls
-    * ``hover`` — altitude PD + lean against XY velocity / known wind
-    * ``kick`` — brief lateral disturb, then brake + home toward start
-    * ``turn`` — seek along an L-path (leg1 then leg2) for corner supervision
+    * ``random`` - small random PyFlyt controls
+    * ``hover`` - altitude PD + lean against XY velocity / known wind
+    * ``kick`` - brief lateral disturb, then brake + home toward start
+    * ``turn`` - seek along an L-path (leg1 then leg2) for corner supervision
     """
     import gymnasium
     import PyFlyt.gym_envs  # noqa: F401  -- registers envs
@@ -395,13 +395,13 @@ class PyFlytClipsDataset(Dataset):
 
     Stress mix (fractions are applied in order, remainder is random):
 
-    * ``wind_fraction`` — hover / wind-counter under constant wind
-    * ``kick_fraction`` — disturb then brake/home (recover supervision)
-    * ``turn_fraction`` — L-path seek (corner supervision)
+    * ``wind_fraction`` - hover / wind-counter under constant wind
+    * ``kick_fraction`` - disturb then brake/home (recover supervision)
+    * ``turn_fraction`` - L-path seek (corner supervision)
 
     **Leak warning:** ``hover`` / ``kick`` / ``turn`` build controls from the
     current observation (state-dependent PD). Do **not** use nonzero
-    ``wind/kick/turn_fraction`` for leak-free headline ablations — keep the
+    ``wind/kick/turn_fraction`` for leak-free headline ablations - keep the
     default fractions at 0 (random exogenous RNG controls only).
     """
 

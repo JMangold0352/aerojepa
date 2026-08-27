@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Compare closed-loop drift: random-shooting vs gradient multi-step planning.
 
-Runs the same task (default: ``recover``) twice with the ``planner`` policy —
+Runs the same task (default: ``recover``) twice with the ``planner`` policy -
 once with random shooting, once with the gradient-based multi-step planner that
-optimizes a differentiable cost on position, velocity, and attitude — and writes
+optimizes a differentiable cost on position, velocity, and attitude - and writes
 a side-by-side drift report.
 
 To attribute the recovery to the planner itself (rather than the reactive seek
@@ -124,8 +124,8 @@ def main() -> None:
     print("\nDrift comparison (planner policy)")
     print(f"{'mode':<12} {'final_xy':>10} {'max_xy':>10} {'postkick':>10} {'recovered':>10}")
     for name, ep in (("shooting", shoot), ("gradient", grad)):
-        pk = "—" if ep.post_disturb_max_xy is None else f"{ep.post_disturb_max_xy:.3f}"
-        rec = "—" if ep.recovered is None else str(ep.recovered)
+        pk = "-" if ep.post_disturb_max_xy is None else f"{ep.post_disturb_max_xy:.3f}"
+        rec = "-" if ep.recovered is None else str(ep.recovered)
         print(f"{name:<12} {ep.xy_drift:10.3f} {ep.max_xy_drift:10.3f} {pk:>10} {rec:>10}")
     print(f"\nreport → {out}")
 

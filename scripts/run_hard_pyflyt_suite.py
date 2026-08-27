@@ -277,7 +277,7 @@ def main() -> None:
         "curves": curves,
         "n_failures_logged": len(failures),
         "failures_sample": failures[:40],
-        "note": "Success vs difficulty — not a 100%×3-seed table. v1 stack only.",
+        "note": "Success vs difficulty, 10 seeds, v1 stack only.",
     }
 
     out_path = Path(args.out)
@@ -303,7 +303,7 @@ def main() -> None:
         ax.set_title(key)
         ax.axhline(1.0, color="gray", lw=0.5, ls="--")
     fig.suptitle(
-        f"Hard PyFlyt — v1 stack, {len(seeds)} seeds (not a 100% headline)",
+        f"Hard PyFlyt - v1 stack, {len(seeds)} seeds",
         fontsize=11,
     )
     fig.tight_layout()
