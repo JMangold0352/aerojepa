@@ -1,4 +1,4 @@
-"""SO(3) integrator constraint tests (Prompt 7)."""
+"""SO(3) integrator constraint tests."""
 
 from __future__ import annotations
 

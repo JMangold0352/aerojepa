@@ -78,10 +78,25 @@ python scripts/run_closed_loop_demo.py \
   --planner gradient --latent-smooth 0.05
 ```
 
-**Multi-seed results** (3 seeds, `latent_smooth=0.05`) —
-[`visualizations/closed_loop/full_stack_compare_wilds.json`](visualizations/closed_loop/full_stack_compare_wilds.json)
-and bake-off
-[`bakeoff_v1_v2_summary.json`](visualizations/closed_loop/bakeoff_v1_v2_summary.json):
+**Hard-task result (headline).** Success vs difficulty, **10 seeds**, v1 stack —
+[`scripts/run_hard_pyflyt_suite.py`](scripts/run_hard_pyflyt_suite.py) →
+[`visualizations/closed_loop/stress_suite.json`](visualizations/closed_loop/stress_suite.json)
+(+ [`stress_suite_success.png`](visualizations/closed_loop/stress_suite_success.png)):
+
+| Sweep | Outcome |
+| --- | --- |
+| Wind 0–4 m/s | ~100% |
+| Recover delay / hover kick | ~100% |
+| L-turn scale ×0.5–1.0 | ~100% |
+| **L-turn scale ×1.25** | **0%** (cliff) |
+
+Prefer this figure over any 100% table. Easy tasks saturate; the hard L-turn
+does not.
+
+**Easy-task saturation (do not headline).** Older 3-seed table
+(`latent_smooth=0.05`) —
+[`full_stack_compare_wilds.json`](visualizations/closed_loop/full_stack_compare_wilds.json)
+/ bake-off [`bakeoff_v1_v2_summary.json`](visualizations/closed_loop/bakeoff_v1_v2_summary.json):
 
 | Task | Full-stack success | Mean max XY (m) |
 | --- | ---: | ---: |
@@ -96,7 +111,7 @@ val MSE but dropped protocol-B real cosine (0.915 vs 0.957) and failed soft L-tu
 on 2/3 seeds. Do not promote v2.
 
 Recover survival uses adaptive braking after the kick (shared across policies).
-Stress baselines: [`visualizations/closed_loop/stress/BREAKING_POINTS.md`](visualizations/closed_loop/stress/BREAKING_POINTS.md).
+Older stress notes: [`visualizations/closed_loop/stress/BREAKING_POINTS.md`](visualizations/closed_loop/stress/BREAKING_POINTS.md).
 
 **Residual heads:**
 
@@ -140,6 +155,9 @@ Eval holdout: `wilds_012`–`wilds_014` (3 clips, never trained on). Init: synth
 
 **Takeaways:**
 
+- **Caveat:** synthetic-only already reaches ~0.990 real cosine on this 3-clip
+  holdout, and action counterfactuals on `action_conditioned_wilds` are flat
+  (true/zero/shuffle ≈ 0.994) — the latent task may be easy or partly collapsed.
 - **Most transfer happens with one clip.** Real latent cosine jumps 0.990 → 0.993 and rollout improves after a single 30s Parrot session worth of data; 5–12 clips add only ~0.001 cosine.
 - **Baseline gap is negative** on this holdout (−0.009): without fine-tuning, held-out real clips are *easier* than the synthetic reference embedded in the checkpoint — the gap metric is relative to the model's own synthetic val recipe, not absolute quality. After fine-tune the gap turns slightly positive as the synthetic branch rises faster than real.
 - **Rollout tracks latent quality** — flat ~0.987–0.988 after any real fine-tune; no sign of horizon collapse at h=4.

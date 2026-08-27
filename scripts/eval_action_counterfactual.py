@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Action-counterfactual eval for action-conditioned AeroJEPA (Prompt 3).
+"""Action-counterfactual eval for action-conditioned AeroJEPA.
 
 Scores future-latent cosine + smooth-L1 under true / zero / shuffled actions.
 Optional 2D action-energy heatmap (mean L1 vs GT future) over two DoF.

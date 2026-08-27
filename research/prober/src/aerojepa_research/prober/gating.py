@@ -1,4 +1,4 @@
-"""Gated / body-frame residual prober variants (Prompt 6 / memo Q1+Q4).
+"""Gated / body-frame residual prober variants (body vs world invariance).
 
 A. UngatedWorldProber — world-frame residual accel = MLP(s, u)  [current default]
 B. GatedBodyProber — a_world = (T/m) R e3 - g + R a_body(s, u)

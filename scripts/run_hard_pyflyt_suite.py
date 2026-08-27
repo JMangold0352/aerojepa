@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Hard PyFlyt success-vs-difficulty suite (Prompt 5).
+"""Hard PyFlyt success-vs-difficulty suite.
 
 Keeps v1 stack only. Sweeps wind, L-turn scale, recover delay; ≥10 seeds.
 Writes visualizations/closed_loop/stress_suite.json + success-vs-difficulty figure.

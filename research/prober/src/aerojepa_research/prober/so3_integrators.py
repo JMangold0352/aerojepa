@@ -1,4 +1,4 @@
-"""SO(3) attitude integrators for the bake-off (Prompt 7 / memo Q5).
+"""SO(3) attitude integrators for the bake-off.
 
 Same residual / control plant; only the attitude update changes:
 1. Euclidean Euler on R as R^9 (leaves SO(3))

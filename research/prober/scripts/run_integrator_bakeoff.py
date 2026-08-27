@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""SO(3) integrator bake-off (Prompt 7).
+"""SO(3) integrator bake-off.
 
 Same constant body rate ω; swap only the attitude update:
   Euclidean Euler on R^9 | Exp | RK4+project | LGVI midpoint.

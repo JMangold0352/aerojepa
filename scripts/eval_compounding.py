@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""SkyJEPA-style compounding + metric RMSE vs horizon (Prompt 4).
+"""SkyJEPA-style compounding + metric RMSE vs horizon.
 
 Arms:
   - latent teacher-forced vs open-loop on uncond / action-cond (v1) JEPA

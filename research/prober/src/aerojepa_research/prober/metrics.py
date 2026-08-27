@@ -8,7 +8,7 @@ Computes the headline metrics from the charter:
 - Per-horizon error curves for the error-vs-horizon figure.
 
 Legacy tables used wrapped Euler RMSE only. Prefer geodesic for SkyJEPA-comparable
-reporting (see research/AUDIT.md V2 and COLLAB_MEMO.md).
+reporting (see ``docs/CORRECTNESS.md`` V2 and ``research/prober/note.md``).
 """
 
 from __future__ import annotations

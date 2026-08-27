@@ -1,4 +1,4 @@
-"""Tests for geodesic attitude metric (AUDIT V2)."""
+"""Tests for geodesic attitude metric (docs/CORRECTNESS.md V2)."""
 
 from __future__ import annotations
 

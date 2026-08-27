@@ -17,7 +17,7 @@ which produce rich, physically-plausible quadrotor motion. We record the
 pose-delta actions from consecutive states so the frozen world model sees the
 same kind of inputs it was trained on.
 
-IMPORTANT: PyFlyt/PyBullet must run OUTSIDE the Cursor sandbox (it segfaults
+IMPORTANT: PyFlyt/PyBullet must run outside sandboxed environments (it segfaults
 inside). All scripts that import this module should be run with full permissions.
 """
 

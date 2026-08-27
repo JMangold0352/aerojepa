@@ -10,8 +10,9 @@ Plant facts (z-up, mass default 1 kg, ``hover_thrust=0.39``, ``dt=0.025``):
     a_ang_nom = (deg(vp,vq,vr) - omega) / dt
 Residuals: world-frame linear + body-frame angular. Attitude is stored as an
 Euler chart with wrap; body rates ``(p,q,r)`` are converted to Euler rates
-before the chart step — **not** a Lie-group Exp update (see research/AUDIT.md V5
-and COLLAB_MEMO.md). Angular residuals are typically scaled by 0.25 in ``Prober``.
+before the chart step — **not** a Lie-group Exp update (see
+``docs/CORRECTNESS.md`` V5 and ``research/prober/note.md``). Angular residuals
+are typically scaled by 0.25 in ``Prober``.
 
 :class:`KinematicIntegrator` is **legacy / leaky**: it treats AeroJEPA 6-DoF
 pose-delta actions as velocity/attitude targets (can equal GT). Do not use it

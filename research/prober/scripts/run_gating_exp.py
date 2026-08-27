@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Gating + body residual experiment (Prompt 6).
+"""Gating + body residual experiment.
 
 Frozen JEPA encoder. Three prober variants + SO(3) frame invariance test.
 Results → research/prober/results/gating_exp/ + updates gating_exp.md narrative.
