@@ -11,6 +11,7 @@ Unconditioned world-model fine-tune on **The Wilds Drones** Parrot clips. Best
   `checkpoints/real_finetune/latest.pt`
 - **Config:** [`configs/aerojepa_finetune_fast.yaml`](../configs/aerojepa_finetune_fast.yaml)
 - **Checkpoint:** `checkpoints/real_finetune_fast/latest.pt`
+- Hosted CPU weights: see [`released_weights/`](../released_weights/).
 
 ## Data & resolution
 

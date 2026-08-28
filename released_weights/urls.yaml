@@ -1,0 +1,11 @@
+# Pretrained checkpoint URLs (not committed to git).
+# Override any entry with an environment variable (see released_weights/README.md).
+#
+# Canonical shape after upload:
+#   https://huggingface.co/JMangold0352/aerojepa/resolve/main/<filename>
+
+world_model:
+  huggingface: PLACEHOLDER_URL
+
+real_finetune_fast:
+  huggingface: PLACEHOLDER_URL

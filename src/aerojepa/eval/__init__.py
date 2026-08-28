@@ -22,4 +22,30 @@ def load_model(checkpoint_path: str | Path, device: torch.device) -> tuple[AeroJ
     return model, cfg
 
 
-__all__ = ["load_model"]
+def load_pretrained(
+    name: str,
+    device: torch.device,
+    *,
+    pretrained: bool = True,
+) -> tuple[AeroJEPA, dict[str, Any]]:
+    """Load a released registry checkpoint, downloading when URLs are configured.
+
+    ``name`` must be one of ``world_model`` or ``real_finetune_fast``.
+    If the local dest exists, it is loaded. Otherwise, when ``pretrained=True``
+    and ``released_weights/urls.yaml`` is not a placeholder, the file is
+    downloaded. Raises a short error if weights are not published yet.
+    """
+    from aerojepa.eval.weights import WeightDownloadError, ensure_checkpoint
+
+    try:
+        path = ensure_checkpoint(name, pretrained=pretrained)
+    except WeightDownloadError as exc:
+        raise RuntimeError(
+            f"weights not published yet; train or pass --checkpoint ({exc})"
+        ) from exc
+    except FileNotFoundError as exc:
+        raise RuntimeError(str(exc)) from exc
+    return load_model(path, device)
+
+
+__all__ = ["load_model", "load_pretrained"]

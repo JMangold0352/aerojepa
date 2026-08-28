@@ -322,13 +322,25 @@ pytest -q
 
 No GPU required. Auto-selects **MPS** (Apple Silicon), CUDA, or CPU.
 
+**Released weights** — `world_model` and `real_finetune_fast` on Hugging Face
+(see [`released_weights/`](released_weights/)). Not in git. Action-conditioned
+Wilds is not released because counterfactuals fail.
+
+```bash
+pip install -e ".[hf]"                 # optional: huggingface_hub
+./scripts/download_weights.sh --list
+./scripts/download_weights.sh world_model
+```
+
 **Load encoder in Python**
 
 ```python
 import torch
-from aerojepa.eval import load_model
+from aerojepa.eval import load_model, load_pretrained
 
-model, cfg = load_model("checkpoints/real_finetune_fast/latest.pt", torch.device("cpu"))
+model, cfg = load_pretrained("world_model", torch.device("cpu"))
+# or a local path:
+# model, cfg = load_model("checkpoints/real_finetune_fast/latest.pt", torch.device("cpu"))
 clip = torch.rand(1, cfg["data"]["num_frames"], 3, cfg["data"]["img_size"], cfg["data"]["img_size"])
 features = model.encoder.forward_all_patches(clip)   # (1, T*S, D)
 ```
@@ -404,9 +416,20 @@ Interactive world-model demo: generate a synthetic flight, choose context frames
 
 ```bash
 pip install gradio
+./scripts/download_weights.sh world_model
 python app.py --checkpoint checkpoints/world_model/latest.pt
 # → http://127.0.0.1:7860
 ```
+
+```python
+import torch
+from aerojepa.eval import load_pretrained
+
+model, cfg = load_pretrained("world_model", torch.device("cpu"))
+```
+
+`python app.py` with no `--checkpoint` tries the same `world_model` download;
+if URLs are still placeholders it falls back to the untrained smoke model.
 
 | | |
 | --- | --- |

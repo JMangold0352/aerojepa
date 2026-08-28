@@ -45,8 +45,9 @@ wandb/
 *.pt
 *.ckpt
 *.pth
-# Large model weights: keep out of git; use Git LFS or release assets if needed.
-#   git lfs track "*.pt"   # optional for a weights release branch
+# Exported CPU release copies (local only; upload to Hugging Face, never commit)
+released_weights/_export/
+# Large model weights: keep out of git; host on Hugging Face (see released_weights/).
 
 # AeroProber ablation run logs (regenerated)
 research/prober/results/_*.log

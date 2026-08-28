@@ -21,6 +21,7 @@ demo = ["gradio>=4.0.0"]
 viz = ["scikit-learn>=1.4.0"]
 video = ["opencv-python>=4.9.0"]
 sim = ["PyFlyt>=0.20.0"]
+hf = ["huggingface_hub>=0.24.0"]
 # Optional Rust ingest accelerator (see docs/NATIVE_PREPROCESS.md).
 # Build the wheel separately: cd native/aerojepa-preprocess && maturin develop --release
 native = ["maturin>=1.5"]

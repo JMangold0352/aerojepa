@@ -12,6 +12,7 @@ building block for model-based control.
 - **Configs:**
   [`configs/aerojepa_world_model.yaml`](../configs/aerojepa_world_model.yaml) and
   [`configs/aerojepa_action_conditioned.yaml`](../configs/aerojepa_action_conditioned.yaml).
+- Hosted CPU weights for `world_model`: see [`released_weights/`](../released_weights/).
 
 ## Architecture
 

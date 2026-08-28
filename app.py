@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """AeroJEPA Gradio demo entry point.
 
-    python app.py                                  # untrained smoke model
+    python app.py                                  # try world_model download / local, else smoke
     python app.py --checkpoint checkpoints/world_model/latest.pt
 
 This file is also the Hugging Face Spaces entry point.
@@ -22,12 +22,29 @@ for _p in (_ROOT / "src", _ROOT):
 from demo.render import launch_demo  # noqa: E402
 
 
+def _resolve_default_checkpoint() -> str | None:
+    """Prefer local world_model; try download; else untrained smoke."""
+    local = _ROOT / "checkpoints" / "world_model" / "latest.pt"
+    if local.is_file():
+        return str(local)
+    try:
+        from aerojepa.eval.weights import ensure_checkpoint
+
+        return str(ensure_checkpoint("world_model", pretrained=True))
+    except Exception:
+        print("weights are not published yet; running untrained smoke model")
+        return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", default=None, help="Trained checkpoint (optional).")
     parser.add_argument("--share", action="store_true", help="Create a public Gradio link.")
     args = parser.parse_args()
-    launch_demo(checkpoint=args.checkpoint, share=args.share)
+    checkpoint = args.checkpoint
+    if not checkpoint:
+        checkpoint = _resolve_default_checkpoint()
+    launch_demo(checkpoint=checkpoint, share=args.share)
 
 
 if __name__ == "__main__":

@@ -75,13 +75,35 @@ python visualizations/compare_ablations.py
 # -> visualizations/figures/ablations/
 ```
 
-## 6. Interactive demo
+## 6. Download released weights
+
+Hosted files: [`released_weights/`](released_weights/). Until
+`released_weights/urls.yaml` has real URLs (not `PLACEHOLDER_URL`), download
+fails — train locally instead.
 
 ```bash
+pip install -e ".[hf]"                 # optional
+./scripts/download_weights.sh --list
+./scripts/download_weights.sh world_model
+# -> checkpoints/world_model/latest.pt
+```
+
+```python
+import torch
+from aerojepa.eval import load_pretrained
+model, cfg = load_pretrained("world_model", torch.device("cpu"))
+```
+
+Action-conditioned Wilds is not released (counterfactuals fail).
+
+## 7. Interactive demo
+
+```bash
+./scripts/download_weights.sh world_model
 python app.py --checkpoint checkpoints/world_model/latest.pt   # http://127.0.0.1:7860
 ```
 
-## 7. Closed-loop (PyFlyt)
+## 8. Closed-loop (PyFlyt)
 
 Needs `pip install -e ".[sim]"`. Run outside sandboxed environments.
 
