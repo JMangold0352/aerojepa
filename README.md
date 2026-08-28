@@ -48,7 +48,7 @@ closed-loop planner (~3-5M params). Controls in the prober plant are
 **body-rate + thrust**, not four rotor forces.
 
 **Action conditioning:** on `action_conditioned_wilds`, true / zero / shuffled
-actions yield essentially the same latent cosine (~0.994). The AC checkpoint is
+actions yield essentially the same latent cosine (~0.994). The AC checkpoint
 doesn't respond to counterfactual actions yet; it remains the closed-loop default only because
 planning needs an action-shaped interface. For representation claims, use
 unconditioned `real_finetune_fast`.
