@@ -113,7 +113,7 @@
       ]
     ]
   },
-  "verdict": "FAIL (F2): true actions do not clearly beat zero/shuffle. Action-conditioning may be ignored; do not claim a causal world model yet.",
+  "verdict": "FAIL (F2): true actions do not clearly beat zero/shuffle. Action-conditioning may be ignored; counterfactual tests fail.",
   "unconditioned_compare": {
     "checkpoint": "checkpoints/real_finetune_fast/latest.pt",
     "cosine": 0.996728889644146,

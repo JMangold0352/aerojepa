@@ -139,7 +139,7 @@ python scripts/eval_action_counterfactual.py \
 
 Report **true / zero / shuffled** latent cosine and smooth-L1. Success =
 shuffled and zero clearly worse than true. Current result: they are **not**
-(cosine ≈ 0.994 for all three), so this is not yet a causal world model.
+(cosine ≈ 0.994 for all three), so counterfactual tests haven't passed.
 
 ## Compounding + metric vs horizon
 

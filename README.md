@@ -6,7 +6,7 @@
 probing (0.1 s, \(\Delta t=0.025\,\mathrm{s}\)) on a rate+thrust plant, plus PyFlyt
 closed-loop planning that fails on hard L-turns, without reconstructing pixels.
 Action conditioning is in the checkpoint but does not pass true/zero/shuffle
-tests yet (not a causal world model).**
+tests yet.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776ab?logo=python&logoColor=white)](pyproject.toml)
 [![PyTorch 2.2+](https://img.shields.io/badge/PyTorch-2.2+-ee4c2c?logo=pytorch&logoColor=white)](pyproject.toml)
@@ -49,7 +49,7 @@ closed-loop planner (~3-5M params). Controls in the prober plant are
 
 **Action conditioning:** on `action_conditioned_wilds`, true / zero / shuffled
 actions yield essentially the same latent cosine (~0.994). The AC checkpoint is
-not yet a causal world model; it remains the closed-loop default only because
+doesn't respond to counterfactual actions yet; it remains the closed-loop default only because
 planning needs an action-shaped interface. For representation claims, use
 unconditioned `real_finetune_fast`.
 
@@ -474,7 +474,7 @@ Per-model documentation: architecture, training recipe, metrics, limitations, an
 | Limitation | Status |
 | --- | --- |
 | Closed-loop is a research demo | PyFlyt + heuristic map + small residual; not a flight controller |
-| Action-conditioned Wilds | Counterfactuals fail (true≈zero≈shuffle); not a causal world model yet |
+| Action-conditioned Wilds | Counterfactuals fail (true≈zero≈shuffle); action conditioning not validated |
 | Hard L-turn | Stress suite: scale ×1.25 → 0% success (10 seeds) |
 | AeroProber ~0.006 m tables | Trained **before** PyFlyt GT unit/frame fix; see [`docs/CORRECTNESS.md`](docs/CORRECTNESS.md) |
 | Looped vs regular (prober) | **Tie** on structured metric RMSE |

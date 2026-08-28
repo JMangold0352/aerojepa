@@ -160,7 +160,7 @@ def _verdict(report: dict) -> str:
         )
     return (
         "FAIL (F2): true actions do not clearly beat zero/shuffle. "
-        "Action-conditioning may be ignored; do not claim a causal world model yet."
+        "Action-conditioning may be ignored; counterfactual tests fail."
     )
 
 

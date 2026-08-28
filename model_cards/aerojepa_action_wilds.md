@@ -35,8 +35,8 @@ python scripts/evaluate_real.py \
 | Gap | **+0.037** |
 
 Weaker than [`real_finetune_fast`](aerojepa_real_finetune.md) on protocol-B cosine.
-**Action counterfactuals fail** (true≈zero≈shuffle cosine ≈0.994): not yet a
-causal world model. Kept for the closed-loop action interface.
+**Action counterfactuals fail** (true≈zero≈shuffle cosine ≈0.994). Kept for the
+closed-loop action interface.
 `*_wilds_v2` is worse and not the default.
 
 Model input **64×64** (Wilds clips may be 128 on disk). Cosine = predictor↔EMA teacher

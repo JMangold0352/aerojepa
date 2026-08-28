@@ -101,4 +101,4 @@ pitch ±90°. Structure-preserving alternatives live in `so3_integrators.py`
 - Looped vs regular predictor on the structured prober: **tie**.
 - No energy-conservation claims for a forced, draggy quadrotor.
 - Action-conditioned Wilds does **not** yet pass true/zero/shuffle counterfactuals
-  (`results/action_counterfactual.json`); it is not a causal world model.
+  (`results/action_counterfactual.json`); counterfactual tests haven't passed.
