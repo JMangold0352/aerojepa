@@ -172,6 +172,13 @@ python scripts/run_hard_pyflyt_suite.py \
 v1 stack only. This is the primary closed-loop difficulty figure (not the older
 100% × 3-seed table).
 
+## Vehicle protocol
+
+Closed-loop episodes use the small `Vehicle` surface in
+[`docs/VEHICLE.md`](VEHICLE.md) (`src/aerojepa/sim/vehicle.py`). Default adapter:
+`PyFlytVehicle`. Control is `(vp, vq, vr, T)`; `aerojepa_to_pyflyt` stays a
+control-side heuristic.
+
 ## Physics evals (gating + integrator)
 
 See `research/prober/gating_exp.md` and `docs/CORRECTNESS.md`.

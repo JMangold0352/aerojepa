@@ -44,7 +44,8 @@ to SkyJEPA outdoor numbers (different horizon, \(\Delta t\), speed, and setting)
 AeroJEPA extends [looped-jepa](https://github.com/JMangold0352/looped-jepa): predict
 future latents from short egocentric clips. The repo includes synthetic training,
 Wilds fine-tune, AeroProber metric decoding, a Gradio demo, and a PyFlyt
-closed-loop planner (~3-5M params). Controls in the prober plant are
+closed-loop planner (~3-5M params) behind a small `Vehicle` protocol
+([`docs/VEHICLE.md`](docs/VEHICLE.md)). Controls in the prober plant are
 **body-rate + thrust**, not four rotor forces.
 
 **Action conditioning:** on `action_conditioned_wilds`, true / zero / shuffled
@@ -496,7 +497,7 @@ Per-model documentation: architecture, training recipe, metrics, limitations, an
 
 | Limitation | Status |
 | --- | --- |
-| Closed-loop is a research demo | PyFlyt + heuristic map + small residual; not a flight controller |
+| Closed-loop is a research demo | PyFlyt via `Vehicle` protocol + heuristic map + small residual; not a flight controller ([`docs/VEHICLE.md`](docs/VEHICLE.md)) |
 | Action-conditioned Wilds | Counterfactuals fail (true≈zero≈shuffle); action conditioning not validated |
 | Hard L-turn | Stress suite: scale ×1.25 → 0% success (10 seeds) |
 | AeroProber ~0.006 m tables | Trained **before** PyFlyt GT unit/frame fix; see [`docs/CORRECTNESS.md`](docs/CORRECTNESS.md) |

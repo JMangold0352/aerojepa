@@ -24,13 +24,18 @@ import torch
 from aerojepa.models.jepa import AeroJEPA
 from aerojepa.sim.action_residual import ActionResidualHead, map_aero_with_optional_residual
 from aerojepa.sim.planner import COST_FUNCTIONS, LatentPlanner, MultiStepCostWeights
-from aerojepa.sim.simulators import make_pyflyt_env
+from aerojepa.sim.vehicle import (
+    DEFAULT_ENV_ID,
+    DEFAULT_HOVER_THRUST,
+    RATE_LIMIT,
+    THRUST_MAX,
+    PyFlytVehicle,
+    Vehicle,
+    VehicleState,
+    make_constant_wind_fn,
+)
 
 PolicyName = Literal["planner", "hover", "random", "inert", "seek"]
-
-# Empirically near hover for QuadX-Hover-v4 with default mass / thrust limits.
-DEFAULT_HOVER_THRUST = 0.39
-DEFAULT_ENV_ID = "PyFlyt/QuadX-Hover-v4"
 DEFAULT_WAYPOINT_GOAL = (0.6, 0.0, 0.0)
 DEFAULT_REACH_THRESHOLD = 0.25
 DEFAULT_RECOVER_XY_THRESHOLD = 0.40
@@ -89,80 +94,52 @@ def aerojepa_to_pyflyt(
     if a.shape[0] != 6:
         raise ValueError(f"expected 6-DoF action, got shape {a.shape}")
     dx, dy, d_alt, d_yaw, d_pitch, d_roll = (float(x) for x in a)
-    pi = float(np.pi)
-    vp = float(np.clip((-dy * xy_scale) + (d_roll * rate_scale), -pi, pi))
-    vq = float(np.clip((dx * xy_scale) + (d_pitch * rate_scale), -pi, pi))
-    vr = float(np.clip(d_yaw * rate_scale, -pi, pi))
-    thrust = float(np.clip(hover_thrust + alt_scale * d_alt, 0.0, 0.8))
+    vp = float(np.clip((-dy * xy_scale) + (d_roll * rate_scale), -RATE_LIMIT, RATE_LIMIT))
+    vq = float(np.clip((dx * xy_scale) + (d_pitch * rate_scale), -RATE_LIMIT, RATE_LIMIT))
+    vr = float(np.clip(d_yaw * rate_scale, -RATE_LIMIT, RATE_LIMIT))
+    thrust = float(np.clip(hover_thrust + alt_scale * d_alt, 0.0, THRUST_MAX))
     return np.array([vp, vq, vr, thrust], dtype=np.float32)
-
-
-def _obs_xyz_vxyz(obs: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Extract linear position / velocity from PyFlyt euler observation."""
-    o = np.asarray(obs, dtype=np.float32).reshape(-1)
-    lin_vel = o[6:9].copy()
-    lin_pos = o[9:12].copy()
-    return lin_pos, lin_vel
-
-
-def _render_frame(env: Any, img_size: int) -> np.ndarray:
-    """PyFlyt RGBA render → ``(3, H, W)`` float32 in ``[0, 1]``."""
-    frame = env.render()
-    if frame is None:
-        raise RuntimeError("env.render() returned None; create the env with render_mode='rgb_array'")
-    if frame.ndim == 3 and frame.shape[-1] == 4:
-        frame = frame[..., :3]
-    if frame.shape[0] != img_size or frame.shape[1] != img_size:
-        h, w = frame.shape[:2]
-        y0 = max(0, (h - img_size) // 2)
-        x0 = max(0, (w - img_size) // 2)
-        frame = frame[y0 : y0 + img_size, x0 : x0 + img_size]
-        if frame.shape[0] != img_size or frame.shape[1] != img_size:
-            from PIL import Image
-
-            frame = np.asarray(
-                Image.fromarray(frame).resize((img_size, img_size), Image.BILINEAR)
-            )
-    out = np.ascontiguousarray(frame).astype(np.float32) / 255.0
-    return np.transpose(out, (2, 0, 1))
 
 
 def _assist_thrust(
     base_action: np.ndarray,
-    obs: np.ndarray,
+    state: VehicleState,
     z_des: float,
     *,
     kp: float = 0.35,
     kd: float = 0.15,
 ) -> np.ndarray:
     """Optional altitude PD on top of the mapped thrust (keeps demos aloft)."""
-    pos, vel = _obs_xyz_vxyz(obs)
+    pos, vel = state.xyz, state.vxyz
     action = base_action.copy()
     action[3] = float(
-        np.clip(action[3] + kp * (z_des - float(pos[2])) - kd * float(vel[2]), 0.0, 0.8)
+        np.clip(
+            action[3] + kp * (z_des - float(pos[2])) - kd * float(vel[2]),
+            0.0,
+            THRUST_MAX,
+        )
     )
     return action
 
 
 def _brake_action(
-    obs: np.ndarray,
+    state: VehicleState,
     *,
     hover_thrust: float = DEFAULT_HOVER_THRUST,
     kd_xy: float = 0.9,
     kd_z: float = 0.15,
 ) -> np.ndarray:
     """Velocity-kill PD: lean against current velocity (no position term)."""
-    pos, vel = _obs_xyz_vxyz(obs)
-    pi = float(np.pi)
+    vel = state.vxyz
     # Same sign convention as _seek_action: +vq→+x, -vp→+y.
-    vp = float(np.clip(kd_xy * vel[1], -pi, pi))
-    vq = float(np.clip(-kd_xy * vel[0], -pi, pi))
-    thrust = float(np.clip(hover_thrust - kd_z * vel[2], 0.0, 0.8))
+    vp = float(np.clip(kd_xy * vel[1], -RATE_LIMIT, RATE_LIMIT))
+    vq = float(np.clip(-kd_xy * vel[0], -RATE_LIMIT, RATE_LIMIT))
+    thrust = float(np.clip(hover_thrust - kd_z * vel[2], 0.0, THRUST_MAX))
     return np.array([vp, vq, 0.0, thrust], dtype=np.float32)
 
 
 def _seek_action(
-    obs: np.ndarray,
+    state: VehicleState,
     goal_world: np.ndarray,
     *,
     hover_thrust: float = DEFAULT_HOVER_THRUST,
@@ -172,43 +149,16 @@ def _seek_action(
     kd_z: float = 0.15,
 ) -> np.ndarray:
     """Reactive PD that leans toward ``goal_world`` (no world model)."""
-    pos, vel = _obs_xyz_vxyz(obs)
+    pos, vel = state.xyz, state.vxyz
     err = np.asarray(goal_world, dtype=np.float32) - pos
     # Soften gains near the target to avoid overshoot / flip at the end.
     dist_xy = float(np.linalg.norm(err[:2]))
     gain = float(np.clip(dist_xy / 0.6, 0.25, 1.0))
-    pi = float(np.pi)
     # Same sign convention as aerojepa_to_pyflyt: +vq→+x, -vp→+y.
-    vp = float(np.clip(-(gain * kp_xy * err[1] - kd_xy * vel[1]), -pi, pi))
-    vq = float(np.clip(gain * kp_xy * err[0] - kd_xy * vel[0], -pi, pi))
-    thrust = float(np.clip(hover_thrust + kp_z * err[2] - kd_z * vel[2], 0.0, 0.8))
+    vp = float(np.clip(-(gain * kp_xy * err[1] - kd_xy * vel[1]), -RATE_LIMIT, RATE_LIMIT))
+    vq = float(np.clip(gain * kp_xy * err[0] - kd_xy * vel[0], -RATE_LIMIT, RATE_LIMIT))
+    thrust = float(np.clip(hover_thrust + kp_z * err[2] - kd_z * vel[2], 0.0, THRUST_MAX))
     return np.array([vp, vq, 0.0, thrust], dtype=np.float32)
-
-
-def _make_constant_wind_fn(
-    wind_vec: tuple[float, float, float] | np.ndarray,
-    *,
-    onset_seconds: float = 0.0,
-) -> Any:
-    """Build a PyFlyt wind-field callable: constant velocity after ``onset_seconds``."""
-    vec = np.asarray(wind_vec, dtype=np.float64).reshape(3)
-
-    def wind_fn(time: float, position: np.ndarray) -> np.ndarray:
-        if time < onset_seconds:
-            return np.zeros_like(position, dtype=np.float64)
-        return np.broadcast_to(vec, position.shape).copy()
-
-    return wind_fn
-
-
-def _register_wind(env: Any, wind_fn: Any) -> None:
-    """Attach a wind field to the live PyFlyt aviary (after ``reset``)."""
-    aviary = getattr(getattr(env, "unwrapped", env), "env", None)
-    if aviary is None or not hasattr(aviary, "register_wind_field_function"):
-        raise RuntimeError(
-            "PyFlyt env has no register_wind_field_function; cannot run wind_gust."
-        )
-    aviary.register_wind_field_function(wind_fn)
 
 
 def classify_failure_mode(
@@ -403,8 +353,12 @@ def run_closed_loop_episode(
     aggressive_seek_blend_leg1: float = DEFAULT_AGGRESSIVE_SEEK_BLEND_LEG1,
     aggressive_seek_blend_leg2: float = DEFAULT_AGGRESSIVE_SEEK_BLEND_LEG2,
     corner_lookahead: float = DEFAULT_CORNER_LOOKAHEAD,
+    vehicle: Vehicle | None = None,
 ) -> EpisodeResult:
-    """Run one PyFlyt episode under ``policy`` and return metrics (+ optional RGB).
+    """Run one closed-loop episode under ``policy`` and return metrics (+ optional RGB).
+
+    When ``vehicle`` is omitted, constructs a :class:`PyFlytVehicle` (research demo
+    only - not a flight controller). The loop talks only to the Vehicle protocol.
 
     ``task``:
       * ``hover`` / ``waypoint`` / ``smoothness`` - LatentPlanner cost names
@@ -480,15 +434,15 @@ def run_closed_loop_episode(
         flight_dome_size = max(flight_dome_size, 8.0)
         max_duration_seconds = max(max_duration_seconds, 20.0)
 
-    env = make_pyflyt_env(
-        env_id,
-        render_mode="rgb_array",
-        angle_representation="euler",
-        render_resolution=(img_size, img_size),
-        flight_dome_size=flight_dome_size,
-        max_duration_seconds=max_duration_seconds,
-        agent_hz=agent_hz,
-    )
+    owns_vehicle = vehicle is None
+    if vehicle is None:
+        vehicle = PyFlytVehicle(
+            img_size=img_size,
+            env_id=env_id,
+            agent_hz=agent_hz,
+            flight_dome_size=flight_dome_size,
+            max_duration_seconds=max_duration_seconds,
+        )
 
     planner: LatentPlanner | None = None
     if policy == "planner":
@@ -515,8 +469,9 @@ def run_closed_loop_episode(
         )
 
     rng = np.random.default_rng(seed)
-    obs, _info = env.reset(seed=seed)
-    start_pos, _ = _obs_xyz_vxyz(obs)
+    vobs = vehicle.reset(seed=seed)
+    state = vobs.state
+    start_pos = state.xyz.copy()
     z0 = float(start_pos[2])
     goal_disp = np.zeros(3, dtype=np.float32) if goal is None else np.asarray(goal, dtype=np.float32)
     # Waypoint / aggressive final goal = start+goal; recover always homes to start.
@@ -536,8 +491,9 @@ def run_closed_loop_episode(
 
     # Moderate wind: register after reset so the aviary is live. Same heuristic
     # action map as every other task - wind is the only new stressor.
-    wind_vec = None
     if task == "wind_gust":
+        if not isinstance(vehicle, PyFlytVehicle):
+            raise RuntimeError("wind_gust requires PyFlytVehicle (wind field API)")
         direction = np.asarray(wind_direction, dtype=np.float64).reshape(3)
         norm = float(np.linalg.norm(direction))
         if norm < 1e-8:
@@ -545,10 +501,12 @@ def run_closed_loop_episode(
             norm = 1.0
         wind_vec = (direction / norm) * float(wind_mps)
         onset_s = float(wind_onset) / float(agent_hz)
-        _register_wind(env, _make_constant_wind_fn(wind_vec, onset_seconds=onset_s))
+        vehicle.register_wind_field_function(
+            make_constant_wind_fn(wind_vec, onset_seconds=onset_s)
+        )
 
     buffer: deque[np.ndarray] = deque(maxlen=context_frames or 1)
-    first_frame = _render_frame(env, img_size)
+    first_frame = vehicle.rgb()
     buffer.append(first_frame)
 
     pending: list[np.ndarray] = []
@@ -584,8 +542,7 @@ def run_closed_loop_episode(
             elif task == "recover" and step >= damp_end:
                 # Adaptive braking: stay in damp while the craft still carries
                 # kick momentum (coming home hot is what tips it over).
-                _, vel_now = _obs_xyz_vxyz(obs)
-                speed_xy = float(np.linalg.norm(vel_now[:2]))
+                speed_xy = float(np.linalg.norm(state.vxyz[:2]))
                 if step < damp_max_end and speed_xy > DEFAULT_BRAKE_VEL:
                     phase = "damp"
                 else:
@@ -604,7 +561,7 @@ def run_closed_loop_episode(
                 # Actively kill lateral momentum (lean against velocity) rather
                 # than passively hovering - passive coast leaves the craft too
                 # hot for any recovery policy to bring home upright.
-                action = _brake_action(obs, hover_thrust=hover_thrust)
+                action = _brake_action(state, hover_thrust=hover_thrust)
                 pending.clear()
             elif policy == "planner":
                 assert planner is not None and context_frames is not None
@@ -612,7 +569,7 @@ def run_closed_loop_episode(
                     while len(buffer) < context_frames:
                         buffer.appendleft(buffer[0].copy())
                     ctx = torch.from_numpy(np.stack(list(buffer)[-context_frames:]))
-                    pos_now, vel_now = _obs_xyz_vxyz(obs)
+                    pos_now, vel_now = state.xyz, state.vxyz
                     remaining = None
                     if task == "aggressive_turn" and turn_waypoints:
                         # Corner look-ahead: before tagging leg1, start aiming at
@@ -663,7 +620,7 @@ def run_closed_loop_episode(
                 # Lower ``recover_seek_blend`` to attribute more of the recovery
                 # to the planner itself (used to compare planner modes).
                 if task == "recover" and phase == "recover":
-                    seek = _seek_action(obs, goal_world, hover_thrust=hover_thrust)
+                    seek = _seek_action(state, goal_world, hover_thrust=hover_thrust)
                     blend = float(np.clip(recover_seek_blend, 0.0, 1.0))
                     action = ((1.0 - blend) * action + blend * seek).astype(np.float32)
                 elif task == "aggressive_turn":
@@ -671,12 +628,12 @@ def run_closed_loop_episode(
                     # the corner while the planner still owns most of the command.
                     seek_goal = goal_world
                     if waypoints_reached == 0 and len(turn_waypoints) >= 2:
-                        pos_now, _ = _obs_xyz_vxyz(obs)
+                        pos_now = state.xyz
                         if float(np.linalg.norm(pos_now - turn_waypoints[0])) <= float(
                             corner_lookahead
                         ):
                             seek_goal = turn_waypoints[1]
-                    seek = _seek_action(obs, seek_goal, hover_thrust=hover_thrust)
+                    seek = _seek_action(state, seek_goal, hover_thrust=hover_thrust)
                     blend = (
                         aggressive_seek_blend_leg2
                         if waypoints_reached >= 1
@@ -690,10 +647,14 @@ def run_closed_loop_episode(
             elif policy == "hover":
                 action = np.array([0.0, 0.0, 0.0, hover_thrust], dtype=np.float32)
             elif policy == "seek":
-                action = _seek_action(obs, goal_world, hover_thrust=hover_thrust)
+                action = _seek_action(state, goal_world, hover_thrust=hover_thrust)
             elif policy == "random":
-                low = env.action_space.low.astype(np.float32)
-                high = env.action_space.high.astype(np.float32)
+                low = np.array(
+                    [-RATE_LIMIT, -RATE_LIMIT, -RATE_LIMIT, 0.0], dtype=np.float32
+                )
+                high = np.array(
+                    [RATE_LIMIT, RATE_LIMIT, RATE_LIMIT, THRUST_MAX], dtype=np.float32
+                )
                 action = (rng.uniform(low, high) * 0.35).astype(np.float32)
             elif policy == "inert":
                 action = np.zeros(4, dtype=np.float32)
@@ -701,14 +662,18 @@ def run_closed_loop_episode(
                 raise ValueError(f"unknown policy {policy!r}")
 
             if assist_altitude and policy in ("planner", "hover", "random", "seek"):
-                action = _assist_thrust(action, obs, z_des)
+                action = _assist_thrust(action, state, z_des)
 
-            obs, reward, terminated, truncated, _info = env.step(action)
+            vobs = vehicle.step(action)
+            state = vobs.state
+            reward = vobs.reward
+            terminated = vobs.terminated
+            truncated = vobs.truncated
             total += float(reward)
             rewards.append(float(reward))
             phase_labels.append(phase)
 
-            pos, _vel = _obs_xyz_vxyz(obs)
+            pos = state.xyz
             xy = float(np.linalg.norm(pos[:2] - start_pos[:2]))
             altitudes.append(float(pos[2]))
             xy_drifts.append(xy)
@@ -745,7 +710,7 @@ def run_closed_loop_episode(
                     recovered = True
                     recovery_steps = step - damp_end + 1
 
-            frame = _render_frame(env, img_size)
+            frame = vehicle.rgb()
             buffer.append(frame)
             if record_frames:
                 frames_out.append(frame)
@@ -764,7 +729,8 @@ def run_closed_loop_episode(
         else:
             hit_max_steps = True
     finally:
-        env.close()
+        if owns_vehicle:
+            vehicle.close()
 
     alt_target = np.full(len(altitudes), z_des, dtype=np.float32)
     altitude_mae = float(np.mean(np.abs(np.asarray(altitudes) - alt_target)))

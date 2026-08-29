@@ -3,7 +3,18 @@ from __future__ import annotations
 import numpy as np
 import torch
 
-from aerojepa.sim.closed_loop import aerojepa_to_pyflyt, classify_failure_mode
+from aerojepa.sim.closed_loop import (
+    aerojepa_to_pyflyt,
+    classify_failure_mode,
+    run_closed_loop_episode,
+)
+from aerojepa.sim.vehicle import (
+    RATE_LIMIT,
+    THRUST_MAX,
+    VehicleObs,
+    VehicleState,
+    clip_control,
+)
 
 
 def test_aerojepa_to_pyflyt_shape_and_bounds() -> None:
@@ -123,3 +134,94 @@ def test_classify_failure_crash_beats_other_labels() -> None:
         wind_mps=5.0,
     )
     assert mode == "crash"
+
+
+def test_clip_control_bounds() -> None:
+    hot = clip_control(np.array([10.0, -10.0, 4.0, 2.0], dtype=np.float32))
+    assert abs(float(hot[0])) <= RATE_LIMIT + 1e-6
+    assert abs(float(hot[1])) <= RATE_LIMIT + 1e-6
+    assert abs(float(hot[2])) <= RATE_LIMIT + 1e-6
+    assert 0.0 <= float(hot[3]) <= THRUST_MAX + 1e-6
+
+
+class _RecordingVehicle:
+    """Fake Vehicle with no PyFlyt; records step controls."""
+
+    def __init__(self, img_size: int = 64) -> None:
+        self.img_size = img_size
+        self.controls: list[np.ndarray] = []
+        self._t = 0
+        self._last: VehicleObs | None = None
+
+    def _make_obs(self, *, reward: float = 0.0) -> VehicleObs:
+        rgb = np.zeros((3, self.img_size, self.img_size), dtype=np.float32)
+        state = VehicleState(
+            xyz=np.array([0.0, 0.0, 1.0], dtype=np.float32),
+            vxyz=np.zeros(3, dtype=np.float32),
+            timestamp_s=float(self._t) / 40.0,
+        )
+        return VehicleObs(rgb=rgb, state=state, reward=reward)
+
+    def reset(self, seed: int | None = None) -> VehicleObs:
+        del seed
+        self._t = 0
+        self.controls.clear()
+        self._last = self._make_obs()
+        return self._last
+
+    def rgb(self) -> np.ndarray:
+        assert self._last is not None
+        return self._last.rgb
+
+    def state(self) -> VehicleState:
+        assert self._last is not None
+        return self._last.state
+
+    def step(self, control: np.ndarray) -> VehicleObs:
+        self.controls.append(clip_control(control).copy())
+        self._t += 1
+        self._last = self._make_obs(reward=0.0)
+        return self._last
+
+    def close(self) -> None:
+        return None
+
+
+def test_fake_vehicle_inert_episode_records_controls() -> None:
+    vehicle = _RecordingVehicle(img_size=32)
+    ep = run_closed_loop_episode(
+        model=None,
+        device=torch.device("cpu"),
+        policy="inert",
+        task="hover",
+        img_size=32,
+        max_steps=5,
+        seed=0,
+        record_frames=False,
+        assist_altitude=False,
+        vehicle=vehicle,
+    )
+    assert ep.steps == 5
+    assert len(vehicle.controls) == 5
+    assert all(c.shape == (4,) for c in vehicle.controls)
+    assert all(float(np.linalg.norm(c)) < 1e-6 for c in vehicle.controls)
+
+
+def test_fake_vehicle_hover_episode_records_thrust() -> None:
+    vehicle = _RecordingVehicle(img_size=32)
+    ep = run_closed_loop_episode(
+        model=None,
+        device=torch.device("cpu"),
+        policy="hover",
+        task="hover",
+        img_size=32,
+        max_steps=3,
+        seed=1,
+        record_frames=False,
+        assist_altitude=False,
+        hover_thrust=0.39,
+        vehicle=vehicle,
+    )
+    assert ep.steps == 3
+    assert len(vehicle.controls) == 3
+    assert abs(float(vehicle.controls[0][3]) - 0.39) < 1e-5

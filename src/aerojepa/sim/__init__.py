@@ -30,6 +30,13 @@ from aerojepa.sim.simulators import (
     make_pyflyt_env,
     run_hover_episode,
 )
+from aerojepa.sim.vehicle import (
+    PyFlytVehicle,
+    Vehicle,
+    VehicleObs,
+    VehicleState,
+    clip_control,
+)
 
 __all__ = [
     "LatentPlanner",
@@ -57,4 +64,9 @@ __all__ = [
     "stitch_demo_reel",
     "EpisodeResult",
     "ClosedLoopDemoOutput",
+    "Vehicle",
+    "VehicleObs",
+    "VehicleState",
+    "PyFlytVehicle",
+    "clip_control",
 ]
