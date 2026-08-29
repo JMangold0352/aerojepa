@@ -173,6 +173,11 @@ def main() -> None:
         default=0.70,
         help="Fraction of the reactive seek PD blended in during recover (lower = more planner).",
     )
+    parser.add_argument(
+        "--strict-realtime",
+        action="store_true",
+        help="Exit non-zero if mean loop_ms exceeds the agent_hz budget (off by default; laptops miss 40 Hz).",
+    )
     parser.add_argument("--out-dir", default="visualizations/closed_loop")
     args = parser.parse_args()
 
@@ -333,10 +338,26 @@ def main() -> None:
             )
             if ep.failure_detail:
                 print(f"           └─ {ep.failure_detail}")
+    print("\nTiming / watchdog (research hold, not a flight watchdog)")
+    for name, ep in out.results.items():
+        mean_ms = ep.mean_loop_ms if ep.mean_loop_ms is not None else float("nan")
+        p95_ms = ep.p95_loop_ms if ep.p95_loop_ms is not None else float("nan")
+        print(
+            f"  {name:<10} mean_loop_ms={mean_ms:7.2f}  p95_loop_ms={p95_ms:7.2f}  "
+            f"budget_ms={ep.budget_ms:.1f}  watchdog_holds={ep.watchdog_holds}"
+        )
     print(f"\nmetrics -> {out.metrics_path}")
     print(f"plot    -> {out.plot_path}")
     for name, path in out.gif_paths.items():
         print(f"gif[{name}] -> {path}")
+
+    if args.strict_realtime:
+        for name, ep in out.results.items():
+            if ep.mean_loop_ms is not None and ep.mean_loop_ms > ep.budget_ms:
+                raise SystemExit(
+                    f"--strict-realtime: {name} mean_loop_ms={ep.mean_loop_ms:.2f} "
+                    f"> budget_ms={ep.budget_ms:.1f}"
+                )
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ baselines.
 from __future__ import annotations
 
 import json
+import time
 from collections import deque
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -32,6 +33,7 @@ from aerojepa.sim.vehicle import (
     PyFlytVehicle,
     Vehicle,
     VehicleState,
+    clip_control,
     make_constant_wind_fn,
 )
 
@@ -71,6 +73,27 @@ DEFAULT_ALTITUDE_COLLAPSE = 0.35  # meters; below this while still flying = coll
 
 STRESS_TASKS = frozenset({"wind_gust", "aggressive_turn"})
 ALL_TASKS = frozenset(set(COST_FUNCTIONS) | {"recover"} | STRESS_TASKS)
+
+
+def _hover_hold_control(hover_thrust: float) -> np.ndarray:
+    """Fail-closed hold: zero rates + hover thrust."""
+    return np.array([0.0, 0.0, 0.0, float(hover_thrust)], dtype=np.float32)
+
+
+def _control_is_finite(control: np.ndarray) -> bool:
+    a = np.asarray(control, dtype=np.float32).reshape(-1)
+    return a.shape[0] == 4 and bool(np.isfinite(a).all())
+
+
+def _rgb_ok(rgb: np.ndarray | None, img_size: int) -> bool:
+    if rgb is None:
+        return False
+    arr = np.asarray(rgb)
+    return (
+        arr.dtype == np.float32
+        and arr.shape == (3, img_size, img_size)
+        and bool(np.isfinite(arr).all())
+    )
 
 
 def aerojepa_to_pyflyt(
@@ -273,6 +296,13 @@ class EpisodeResult:
     wind_onset: int | None = None
     waypoints_reached: int | None = None
     waypoints_total: int | None = None
+    watchdog_holds: int = 0
+    budget_ms: float = 25.0
+    mean_loop_ms: float | None = None
+    p95_loop_ms: float | None = None
+    mean_t_rgb_ms: float | None = None
+    mean_t_encode_plan_ms: float | None = None
+    mean_t_step_ms: float | None = None
     frames_chw: list[np.ndarray] = field(default_factory=list, repr=False)
     altitudes: list[float] = field(default_factory=list)
     xy_drifts: list[float] = field(default_factory=list)
@@ -280,6 +310,10 @@ class EpisodeResult:
     positions_xyz: list[list[float]] = field(default_factory=list)
     rewards: list[float] = field(default_factory=list)
     phase_labels: list[str] = field(default_factory=list)
+    t_rgb_ms: list[float] = field(default_factory=list)
+    t_encode_plan_ms: list[float] = field(default_factory=list)
+    t_step_ms: list[float] = field(default_factory=list)
+    loop_ms: list[float] = field(default_factory=list)
 
     def summary(self) -> dict[str, Any]:
         d = asdict(self)
@@ -291,6 +325,10 @@ class EpisodeResult:
             "positions_xyz",
             "rewards",
             "phase_labels",
+            "t_rgb_ms",
+            "t_encode_plan_ms",
+            "t_step_ms",
+            "loop_ms",
         ):
             d.pop(key, None)
         return d
@@ -354,6 +392,8 @@ def run_closed_loop_episode(
     aggressive_seek_blend_leg2: float = DEFAULT_AGGRESSIVE_SEEK_BLEND_LEG2,
     corner_lookahead: float = DEFAULT_CORNER_LOOKAHEAD,
     vehicle: Vehicle | None = None,
+    debug_inject_nan_control: bool = False,
+    debug_plan_delay_ms: float = 0.0,
 ) -> EpisodeResult:
     """Run one closed-loop episode under ``policy`` and return metrics (+ optional RGB).
 
@@ -518,6 +558,14 @@ def run_closed_loop_episode(
     positions_xyz: list[list[float]] = [start_pos.tolist()]
     rewards: list[float] = []
     phase_labels: list[str] = ["settle"]
+    t_rgb_ms_list: list[float] = []
+    t_encode_plan_ms_list: list[float] = []
+    t_step_ms_list: list[float] = []
+    loop_ms_list: list[float] = []
+    budget_ms = 1000.0 / float(agent_hz)
+    hover_hold = _hover_hold_control(hover_thrust)
+    last_good_control = hover_hold.copy()
+    watchdog_holds = 0
     total = 0.0
     survived = True
     reached = False
@@ -535,6 +583,15 @@ def run_closed_loop_episode(
 
     try:
         for step in range(max_steps):
+            t_loop0 = time.perf_counter()
+
+            t0 = time.perf_counter()
+            # Prefer last buffered frame for plan; time a fresh rgb() for the budget log.
+            rgb_now = vehicle.rgb()
+            t_rgb_ms = (time.perf_counter() - t0) * 1000.0
+            rgb_bad = not _rgb_ok(rgb_now, img_size)
+
+            t0 = time.perf_counter()
             if task == "recover" and disturb_at <= step < disturb_end:
                 phase = "kick"
             elif task == "recover" and disturb_end <= step < damp_end:
@@ -664,7 +721,32 @@ def run_closed_loop_episode(
             if assist_altitude and policy in ("planner", "hover", "random", "seek"):
                 action = _assist_thrust(action, state, z_des)
 
+            if debug_inject_nan_control:
+                action = np.full(4, np.nan, dtype=np.float32)
+            if debug_plan_delay_ms > 0.0:
+                time.sleep(float(debug_plan_delay_ms) / 1000.0)
+
+            t_encode_plan_ms = (time.perf_counter() - t0) * 1000.0
+
+            hold = False
+            if rgb_bad or not _control_is_finite(action):
+                hold = True
+            elif (time.perf_counter() - t_loop0) * 1000.0 > 2.0 * budget_ms:
+                hold = True
+
+            if hold:
+                watchdog_holds += 1
+                action = last_good_control.copy()
+            else:
+                action = clip_control(action)
+                last_good_control = action.copy()
+
+            action = clip_control(action)
+
+            t0 = time.perf_counter()
             vobs = vehicle.step(action)
+            t_step_ms = (time.perf_counter() - t0) * 1000.0
+
             state = vobs.state
             reward = vobs.reward
             terminated = vobs.terminated
@@ -710,10 +792,21 @@ def run_closed_loop_episode(
                     recovered = True
                     recovery_steps = step - damp_end + 1
 
-            frame = vehicle.rgb()
+            # Post-step frame for the next plan context (same as before).
+            frame = vobs.rgb if _rgb_ok(vobs.rgb, img_size) else rgb_now
+            if not _rgb_ok(frame, img_size):
+                frame = buffer[-1].copy() if buffer else np.zeros(
+                    (3, img_size, img_size), dtype=np.float32
+                )
             buffer.append(frame)
             if record_frames:
                 frames_out.append(frame)
+
+            loop_ms = (time.perf_counter() - t_loop0) * 1000.0
+            t_rgb_ms_list.append(float(t_rgb_ms))
+            t_encode_plan_ms_list.append(float(t_encode_plan_ms))
+            t_step_ms_list.append(float(t_step_ms))
+            loop_ms_list.append(float(loop_ms))
 
             if reached and stop_on_reach and task in ("waypoint", "aggressive_turn"):
                 survived = True
@@ -750,6 +843,13 @@ def run_closed_loop_episode(
         wind_drift_fail=wind_drift_fail,
         flight_dome_size=float(flight_dome_size),
     )
+
+    def _mean(xs: list[float]) -> float | None:
+        return float(np.mean(xs)) if xs else None
+
+    def _p95(xs: list[float]) -> float | None:
+        return float(np.percentile(xs, 95)) if xs else None
+
     return EpisodeResult(
         policy=policy,
         seed=seed,
@@ -779,6 +879,13 @@ def run_closed_loop_episode(
         wind_onset=int(wind_onset) if task == "wind_gust" else None,
         waypoints_reached=waypoints_reached if task == "aggressive_turn" else None,
         waypoints_total=len(turn_waypoints) if task == "aggressive_turn" else None,
+        watchdog_holds=int(watchdog_holds),
+        budget_ms=float(budget_ms),
+        mean_loop_ms=_mean(loop_ms_list),
+        p95_loop_ms=_p95(loop_ms_list),
+        mean_t_rgb_ms=_mean(t_rgb_ms_list),
+        mean_t_encode_plan_ms=_mean(t_encode_plan_ms_list),
+        mean_t_step_ms=_mean(t_step_ms_list),
         frames_chw=frames_out,
         altitudes=altitudes,
         xy_drifts=xy_drifts,
@@ -786,6 +893,10 @@ def run_closed_loop_episode(
         positions_xyz=positions_xyz,
         rewards=rewards,
         phase_labels=phase_labels,
+        t_rgb_ms=t_rgb_ms_list,
+        t_encode_plan_ms=t_encode_plan_ms_list,
+        t_step_ms=t_step_ms_list,
+        loop_ms=loop_ms_list,
     )
 
 

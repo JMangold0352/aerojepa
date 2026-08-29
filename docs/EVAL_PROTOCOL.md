@@ -177,7 +177,8 @@ v1 stack only. This is the primary closed-loop difficulty figure (not the older
 Closed-loop episodes use the small `Vehicle` surface in
 [`docs/VEHICLE.md`](VEHICLE.md) (`src/aerojepa/sim/vehicle.py`). Default adapter:
 `PyFlytVehicle`. Control is `(vp, vq, vr, T)`; `aerojepa_to_pyflyt` stays a
-control-side heuristic.
+control-side heuristic. Timing / hold-last watchdog fields land on
+`EpisodeResult` (see VEHICLE.md).
 
 ## Physics evals (gating + integrator)
 

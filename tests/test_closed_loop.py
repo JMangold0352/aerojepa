@@ -225,3 +225,55 @@ def test_fake_vehicle_hover_episode_records_thrust() -> None:
     assert ep.steps == 3
     assert len(vehicle.controls) == 3
     assert abs(float(vehicle.controls[0][3]) - 0.39) < 1e-5
+    assert ep.watchdog_holds == 0
+    assert ep.budget_ms == 25.0
+    assert ep.mean_loop_ms is not None
+    assert len(ep.loop_ms) == 3
+
+
+def test_watchdog_hold_on_nan_control() -> None:
+    vehicle = _RecordingVehicle(img_size=32)
+    ep = run_closed_loop_episode(
+        model=None,
+        device=torch.device("cpu"),
+        policy="hover",
+        task="hover",
+        img_size=32,
+        max_steps=4,
+        seed=2,
+        record_frames=False,
+        assist_altitude=False,
+        hover_thrust=0.39,
+        vehicle=vehicle,
+        debug_inject_nan_control=True,
+    )
+    assert ep.watchdog_holds == 4
+    assert len(vehicle.controls) == 4
+    for c in vehicle.controls:
+        assert np.isfinite(c).all()
+        assert abs(float(c[0])) < 1e-6
+        assert abs(float(c[1])) < 1e-6
+        assert abs(float(c[2])) < 1e-6
+        assert abs(float(c[3]) - 0.39) < 1e-5
+
+
+def test_watchdog_hold_on_slow_plan() -> None:
+    vehicle = _RecordingVehicle(img_size=32)
+    # budget=25 ms at 40 Hz; 2× = 50 ms. Sleep past that during encode/plan.
+    ep = run_closed_loop_episode(
+        model=None,
+        device=torch.device("cpu"),
+        policy="hover",
+        task="hover",
+        img_size=32,
+        max_steps=2,
+        seed=3,
+        record_frames=False,
+        assist_altitude=False,
+        hover_thrust=0.39,
+        agent_hz=40,
+        vehicle=vehicle,
+        debug_plan_delay_ms=60.0,
+    )
+    assert ep.watchdog_holds >= 1
+    assert all(np.isfinite(c).all() for c in vehicle.controls)
