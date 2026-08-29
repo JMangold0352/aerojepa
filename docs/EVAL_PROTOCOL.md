@@ -170,10 +170,20 @@ python scripts/run_hard_pyflyt_suite.py \
 ```
 
 v1 stack only. This is the primary closed-loop difficulty figure (not the older
-100% × 3-seed table).
+100% × 3-seed table). Stress-suite L-turn ×1.25 → **0%** comes from
+`stress_suite.json`; do not replace that headline with ablation rates.
+
+**L-turn geometries**
+
+- Soft base: `DEFAULT_AGGRESSIVE_LEG1/LEG2` = 0.5 m legs
+- Hard course: `DEFAULT_AGGRESSIVE_LEG*_HARD` = 0.8 m legs
+- Stress-suite scale sweep and `eval_lturn_action_ablation.py` both scale the
+  **soft** base (×1.25 → 0.625 m). Neither uses the 0.8 m hard course unless
+  that constant is selected explicitly.
 
 L-turn predictor ablation (true/zero/shuffle/residual-off):
-`python scripts/eval_lturn_action_ablation.py` → `results/lturn_action_ablation.json`.
+`python scripts/eval_lturn_action_ablation.py` → `results/lturn_action_ablation.json`
+(scaled soft legs; n=10; JSON verdict: mixed, no causal controller).
 
 ## Vehicle protocol
 

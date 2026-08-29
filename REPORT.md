@@ -90,7 +90,9 @@ python scripts/run_closed_loop_demo.py \
 | L-turn scale ×0.5-1.0 | ~100% |
 | **L-turn scale ×1.25** | **0%** (cliff) |
 
-Easy tasks saturate; the hard L-turn does not.
+Easy tasks saturate; the hard L-turn does not. Headline cliff stays **0%** at
+×1.25 in [`stress_suite.json`](visualizations/closed_loop/stress_suite.json)
+(do not substitute the ablation rates below).
 
 **L-turn action ablation (hardware gate).** Same v1 stack, planner only, **10 seeds**,
 scales ×1.0 and ×1.25. Predictor sees true / zero / shuffled actions
@@ -106,10 +108,14 @@ actions but drops `ActionResidualHead`.
 | shuffle | 100% | 10% | batch-shuffle predictor actions |
 | residual_off | 90% | 50% | heuristic map only |
 
+Geometry: this ablation scales `DEFAULT_AGGRESSIVE_LEG1/LEG2` (0.5 m → 0.625 m at
+×1.25), not the published hard course `DEFAULT_AGGRESSIVE_LEG*_HARD` (0.8 m).
 Verdict (JSON): mixed at ×1.25 (true=20%, zero=0%, shuffle=10%) - no clean causal
-win; do not claim a causal controller. The cliff is not rescued; comparison is
-the headline. Mean `loop_ms` ≫ 25 ms budget on laptop (see closed-loop timing
-logs).
+win; do not claim a causal controller. With n=10, 2 vs 1 vs 0 successes is not a
+significant true>shuffle edge. `residual_off` at 50% (mean `loop_ms` ≈181 vs ≈759
+for true) is a flag that residual may hurt or simply run faster; do not treat it
+as a retune recommendation. Mean `loop_ms` ≫ 25 ms budget on laptop (see
+closed-loop timing logs).
 
 **Planning-forward latency.** Encoder+predictor only (no residual / PyFlyt),
 ~3.36M params. TorchScript export: `scripts/export_planning_forward.py`.

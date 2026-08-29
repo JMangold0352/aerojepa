@@ -107,9 +107,11 @@ yet use actions for prediction.
 
 [`visualizations/closed_loop/stress_suite.json`](visualizations/closed_loop/stress_suite.json):
 wind / recover / hover remain easy; **L-turn scale ×1.25 → 0% success** in the
-difficulty sweep. Four-way L-turn action ablation
+difficulty sweep (stress-suite headline; not replaced by the ablation). Four-way
+L-turn action ablation
 ([`results/lturn_action_ablation.json`](results/lturn_action_ablation.json)):
-at ×1.25, true/zero/shuffle = 20%/0%/10% (mixed; WM not a clean lever). Card:
+at ×1.25 on **scaled soft legs** (0.5 m base → 0.625 m; not the 0.8 m hard
+course), true/zero/shuffle = 20%/0%/10% (mixed; n=10; WM not a clean lever). Card:
 [action Wilds](model_cards/aerojepa_action_wilds.md).
 
 ### Representation fine-tune - real aerial footage (`real_finetune_fast`)
@@ -504,7 +506,7 @@ Per-model documentation: architecture, training recipe, metrics, limitations, an
 | --- | --- |
 | Closed-loop is a research demo | PyFlyt via `Vehicle` protocol + heuristic map + small residual; not a flight controller ([`docs/VEHICLE.md`](docs/VEHICLE.md)) |
 | Action-conditioned Wilds | Counterfactuals fail (true≈zero≈shuffle); action conditioning not validated |
-| Hard L-turn | Stress suite: scale ×1.25 → 0% success (10 seeds) |
+| Hard L-turn | Stress suite: scale ×1.25 → 0% ([`stress_suite.json`](visualizations/closed_loop/stress_suite.json)). Separate action ablation on scaled soft legs (0.5→0.625 m, not 0.8 m hard): 20%/0%/10% true/zero/shuffle at ×1.25 ([`lturn_action_ablation.json`](results/lturn_action_ablation.json)); mixed, not a causal controller |
 | AeroProber ~0.006 m tables | Trained **before** PyFlyt GT unit/frame fix; see [`docs/CORRECTNESS.md`](docs/CORRECTNESS.md) |
 | Looped vs regular (prober) | **Tie** on structured metric RMSE |
 | Checkpoints | Local artifacts; not in git ([REPRODUCTION.md](REPRODUCTION.md)) |
