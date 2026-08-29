@@ -508,6 +508,7 @@ Per-model documentation: architecture, training recipe, metrics, limitations, an
 | Checkpoints | Local artifacts; not in git ([REPRODUCTION.md](REPRODUCTION.md)) |
 | Onboard / ROS / motor-command hardware | Out of scope |
 | Personal Tello footage | Optional future capture; not part of the published pipeline |
+| Tello shadow observer | `scripts/run_tello_shadow.py` logs proposed controls only (`*_shadow.jsonl`); never commands |
 
 Experiment log: [`REPORT.md`](REPORT.md). Prober note: [`research/prober/note.md`](research/prober/note.md).
 

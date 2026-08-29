@@ -92,6 +92,12 @@ python scripts/capture_tello.py --preflight
 
 # 2) Record a 30s clip at 15 fps while a pilot flies manually:
 python scripts/capture_tello.py --duration 30 --fps 15 --name-prefix hover --tags indoor
+
+# 3) Shadow observer (proposed controls only; align offline to capture timestamps):
+python scripts/run_tello_shadow.py \
+  --capture-raw data/flights/<session>.raw.csv \
+  --video data/flights/<session>.mp4 \
+  --checkpoint checkpoints/action_conditioned_wilds/latest.pt
 ```
 
 Each session writes timestamped files:
@@ -100,6 +106,7 @@ Each session writes timestamped files:
 data/flights/hover_20260703_161500_indoor.mp4      # video
 data/flights/hover_20260703_161500_indoor.csv      # training actions (ACTION_COLUMNS)
 data/flights/hover_20260703_161500_indoor.raw.csv  # full flight log (provenance)
+data/flights/hover_20260703_161500_indoor_shadow.jsonl  # optional shadow proposals
 ```
 
 The `.raw.csv` records `t, vgx, vgy, vgz, height, yaw, pitch, roll, bat, tof, baro`;

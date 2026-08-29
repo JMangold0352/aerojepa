@@ -20,6 +20,7 @@ automatically, so they run from a plain checkout (no `pip install -e .` needed).
 | `compare_full_stack.py` | Multi-seed closed-loop: hover / residual / full stack. See `docs/EVAL_PROTOCOL.md`. |
 | `run_stress_suite.py` | Wind-gust + aggressive L-turn stress tests; writes GIFs, metrics, breaking-points summary. |
 | `stitch_closed_loop_demo.py` | Stitch closed-loop GIFs into `docs/gallery/closed_loop_demo_reel.gif`. |
+| `run_tello_shadow.py` | Observer: plan on RGB, log `*_shadow.jsonl` (never commands). Offline align to capture raw CSV, or `--live` stream owner. |
 | `capture_tello.py` | Record a DJI Tello clip + telemetry to `data/flights/` (record-only, never flies). `--preflight`, `--duration`, `--fps`. |
 | `preprocess_real.py` | Standardize any footage into the training format; `--probe` inspects a folder (dataset doctor). |
 | `convert_wilds.py` | Convert The Wilds Drones (Parrot JSON + MP4) into `data/flights/` with telemetry CSVs. |

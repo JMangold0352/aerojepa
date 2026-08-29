@@ -19,3 +19,14 @@ This is a research hold on a laptop sim, not a dual-CPU flight watchdog.
 
 This is a research demo, not a flight controller. Tello capture
 scripts remain record-only.
+
+## Tello shadow (observer)
+
+`TelloShadowVehicle` (`src/aerojepa/sim/tello_shadow.py`) implements
+`reset` / `rgb` / `state` / `close` and **refuses** `step()`.
+`scripts/run_tello_shadow.py` logs proposed `(vp,vq,vr,T)` + `loop_ms` vs
+the 40 Hz budget to `data/flights/<session>_shadow.jsonl`. Prefer offline
+alignment to a capture `*.raw.csv` + mp4 so timestamps match. Live mode
+owns the stream; do not also run capture on the same client. This is not
+a flight controller.
+

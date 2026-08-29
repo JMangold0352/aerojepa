@@ -30,6 +30,7 @@ from aerojepa.sim.simulators import (
     make_pyflyt_env,
     run_hover_episode,
 )
+from aerojepa.sim.tello_shadow import TelloShadowVehicle
 from aerojepa.sim.vehicle import (
     PyFlytVehicle,
     Vehicle,
@@ -69,4 +70,5 @@ __all__ = [
     "VehicleState",
     "PyFlytVehicle",
     "clip_control",
+    "TelloShadowVehicle",
 ]
