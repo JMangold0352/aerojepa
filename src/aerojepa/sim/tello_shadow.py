@@ -154,6 +154,14 @@ def _safe_float(fn) -> float:
 
 
 def _vehicle_state_from_drone(drone: Any, *, t0: float) -> VehicleState:
+    """Build a VehicleState from Tello readouts (observer; no world XY).
+
+    Tello does not expose a world-frame XY here. ``xyz`` is therefore
+    ``(0, 0, height_m)`` with ``height_m = get_height() / 100`` (cm → m).
+    ``vxyz`` is ``get_speed_{x,y,z}() / 100`` (cm/s → m/s); those speeds are
+    not integrated into a dead-reckoned trajectory. Do not treat logged
+    ``xyz`` as a metric path for waypoint success.
+    """
     vgx = _safe_float(drone.get_speed_x) / 100.0
     vgy = _safe_float(drone.get_speed_y) / 100.0
     vgz = _safe_float(drone.get_speed_z) / 100.0

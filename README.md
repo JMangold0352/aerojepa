@@ -512,7 +512,7 @@ Per-model documentation: architecture, training recipe, metrics, limitations, an
 | Checkpoints | Local artifacts; not in git ([REPRODUCTION.md](REPRODUCTION.md)) |
 | Onboard / ROS / motor-command hardware | Out of scope |
 | Personal Tello footage | Optional future capture; not part of the published pipeline |
-| Tello shadow observer | `scripts/run_tello_shadow.py` logs proposed controls only (`*_shadow.jsonl`); never commands |
+| Tello shadow observer | Logs proposed `(vp,vq,vr,T)` + `loop_ms` vs budget; height-only state (`xyz=(0,0,h)`), not metric XY / waypoint success ([`docs/VEHICLE.md`](docs/VEHICLE.md)) |
 | Planning-forward latency | CPU/MPS p95 above 25 ms at batch=12 ([`results/inference_latency.json`](results/inference_latency.json)); raise `--replan-every` or shorten `--horizon` ([`docs/EXPORT.md`](docs/EXPORT.md)) |
 
 Experiment log: [`REPORT.md`](REPORT.md). Prober note: [`research/prober/note.md`](research/prober/note.md).

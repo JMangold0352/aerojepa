@@ -30,9 +30,11 @@ residual, no sim): [`EXPORT.md`](EXPORT.md). Latency numbers live in
 
 `TelloShadowVehicle` (`src/aerojepa/sim/tello_shadow.py`) implements
 `reset` / `rgb` / `state` / `close` and **refuses** `step()`.
-`scripts/run_tello_shadow.py` logs proposed `(vp,vq,vr,T)` + `loop_ms` vs
-the 40 Hz budget to `data/flights/<session>_shadow.jsonl`. Prefer offline
-alignment to a capture `*.raw.csv` + mp4 so timestamps match. Live mode
-owns the stream; do not also run capture on the same client. This is not
-a flight controller.
+`scripts/run_tello_shadow.py` writes `data/flights/<session>_shadow.jsonl`.
+The payload that matters is the proposed control `(vp, vq, vr, T)` plus
+`loop_ms` vs the 25 ms budget at 40 Hz. Tello state here is height-only:
+`xyz = (0, 0, height_m)`; do not treat logged xyz as a metric trajectory or
+claim waypoint tracking. Prefer offline alignment of the jsonl to a capture
+`*.raw.csv` (+ mp4) so timestamps match. Live mode owns the stream; do not
+also run capture on the same client. This is not a flight controller.
 

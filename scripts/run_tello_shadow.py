@@ -4,19 +4,22 @@
 Observer only. Never applies controls. Pair with ``capture_tello.py`` (separate
 process / stream owner) or run offline against a finished capture.
 
-Live::
+The logged payload that matters is proposed ``(vp, vq, vr, T)`` and
+``loop_ms`` vs the 25 ms / 40 Hz budget. Tello has no world XY in this path:
+live ``height_m`` is baro/ToF height only, and ``VehicleState.xyz`` is
+``(0, 0, height_m)``. Do not treat shadow logs as a metric trajectory or as
+waypoint / hover success. Prefer aligning the jsonl to capture ``*.raw.csv``
+timestamps (offline mode below).
 
-    # Terminal A (record):
-    python scripts/capture_tello.py --duration 30 --name-prefix flight --yes
-    # Terminal B (shadow) - use the same session stem after capture finishes,
-    # or run offline:
+Offline::
+
     python scripts/run_tello_shadow.py \\
         --checkpoint checkpoints/action_conditioned_wilds/latest.pt \\
         --capture-raw data/flights/flight_YYYYMMDD_HHMMSS.raw.csv \\
         --video data/flights/flight_YYYYMMDD_HHMMSS.mp4
 
-Offline alignment writes ``<session>_shadow.jsonl`` with the same ``t`` column
-as the capture raw CSV (nearest frame by time).
+Writes ``<session>_shadow.jsonl`` with the same ``t`` column as the capture
+raw CSV (nearest frame by time).
 
 Live stream mode (this process owns the camera; do not also capture on the
 same Wi-Fi client)::
@@ -50,7 +53,8 @@ SAFETY_BANNER = """
 ========================== TELLO SHADOW - OBSERVER ============================
  * Human flies. This process only reads RGB/telemetry and logs proposed controls.
  * It refuses Vehicle.step(); nothing here moves the aircraft.
- * Battery / preflight reuse capture_tello checks (--preflight / --min-battery).
+ * Payload: proposed (vp,vq,vr,T) + loop_ms vs 25 ms budget. Not XY success.
+ * State is height-only (xyz=(0,0,height_m)); not a metric trajectory.
  * Prefer offline --capture-raw + --video so logs share capture timestamps.
  * Live --live owns the stream; do not run capture on the same client at once.
 ===============================================================================
@@ -108,7 +112,12 @@ def _propose(
     action_scale: float,
     seed: int,
 ) -> tuple[np.ndarray, float, float]:
-    """Return clipped (vp,vq,vr,T), plan_cost, encode_plan_ms."""
+    """Return clipped (vp,vq,vr,T), internal plan_cost, encode_plan_ms.
+
+    ``plan_cost`` is the planner's hover ranking scalar on imagined latents.
+    It is not XY / waypoint success and must not be reported as such (Tello
+    shadow has no metric world XY).
+    """
     t0 = time.perf_counter()
     while len(buffer) < context_frames:
         buffer.appendleft(buffer[0].copy())
@@ -160,6 +169,7 @@ def run_offline(args: argparse.Namespace) -> Path:
     budget_ms = 1000.0 / float(args.agent_hz)
     buffer: deque[np.ndarray] = deque(maxlen=context_frames)
     fps_hint = float(args.fps_hint)
+    loop_samples: list[float] = []
 
     with out_path.open("w") as f:
         for i, t_s in enumerate(times):
@@ -183,6 +193,8 @@ def run_offline(args: argparse.Namespace) -> Path:
                 seed=args.seed + i,
             )
             loop_ms = (time.perf_counter() - loop0) * 1000.0
+            loop_samples.append(loop_ms)
+            # plan_cost is planner-internal only; never an XY success/fail flag.
             row = {
                 "t": float(t_s),
                 "vp": float(control[0]),
@@ -201,6 +213,7 @@ def run_offline(args: argparse.Namespace) -> Path:
             f.write(json.dumps(row) + "\n")
             if (i + 1) % 25 == 0:
                 print(f"[shadow] {i + 1}/{len(times)} t={t_s:.2f}s loop_ms={loop_ms:.1f}")
+    _print_timing_summary(loop_samples, budget_ms)
     return out_path
 
 
@@ -243,6 +256,7 @@ def run_live(args: argparse.Namespace) -> Path:
     print(f"[shadow] live observer -> {out_path} (duration {args.duration}s)")
     t_end = time.time() + float(args.duration)
     i = 0
+    loop_samples: list[float] = []
     try:
         with out_path.open("w") as f:
             next_t = time.time()
@@ -264,6 +278,9 @@ def run_live(args: argparse.Namespace) -> Path:
                 )
                 # Observer: never call vehicle.step(control).
                 loop_ms = (time.perf_counter() - loop0) * 1000.0
+                loop_samples.append(loop_ms)
+                # height_m only; xyz XY are zeros (not a metric path).
+                # plan_cost is planner-internal; not XY success/fail.
                 row = {
                     "t": float(obs.state.timestamp_s),
                     "unix_s": time.time(),
@@ -293,7 +310,24 @@ def run_live(args: argparse.Namespace) -> Path:
                     time.sleep(sleep)
     finally:
         vehicle.close()
+    _print_timing_summary(loop_samples, budget_ms)
     return out_path
+
+
+def _print_timing_summary(loop_samples: list[float], budget_ms: float) -> None:
+    """Report loop timing only; never XY / waypoint success on shadow."""
+    if not loop_samples:
+        print("[shadow] no samples; nothing to summarize")
+        return
+    xs = sorted(loop_samples)
+    p50 = xs[len(xs) // 2]
+    p95 = xs[max(0, int(round(0.95 * (len(xs) - 1))))]
+    over = sum(1 for x in xs if x > budget_ms)
+    print(
+        f"[shadow] timing only (not XY success): n={len(xs)} "
+        f"loop_ms p50={p50:.1f} p95={p95:.1f} "
+        f"over_budget={over}/{len(xs)} (budget_ms={budget_ms:.1f})"
+    )
 
 
 def main() -> None:
