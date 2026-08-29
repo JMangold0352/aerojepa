@@ -172,6 +172,9 @@ python scripts/run_hard_pyflyt_suite.py \
 v1 stack only. This is the primary closed-loop difficulty figure (not the older
 100% × 3-seed table).
 
+L-turn predictor ablation (true/zero/shuffle/residual-off):
+`python scripts/eval_lturn_action_ablation.py` → `results/lturn_action_ablation.json`.
+
 ## Vehicle protocol
 
 Closed-loop episodes use the small `Vehicle` surface in

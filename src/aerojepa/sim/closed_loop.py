@@ -394,6 +394,7 @@ def run_closed_loop_episode(
     vehicle: Vehicle | None = None,
     debug_inject_nan_control: bool = False,
     debug_plan_delay_ms: float = 0.0,
+    predictor_action_ablation: str = "true",
 ) -> EpisodeResult:
     """Run one closed-loop episode under ``policy`` and return metrics (+ optional RGB).
 
@@ -506,6 +507,7 @@ def run_closed_loop_episode(
             grad_action_limit=grad_action_limit,
             latent_refine_steps=latent_refine_steps,
             cost_weights=cost_weights,
+            predictor_action_ablation=predictor_action_ablation,  # type: ignore[arg-type]
         )
 
     rng = np.random.default_rng(seed)

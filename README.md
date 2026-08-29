@@ -106,7 +106,10 @@ yet use actions for prediction.
 ### Closed-loop stress (v1, 10 seeds)
 
 [`visualizations/closed_loop/stress_suite.json`](visualizations/closed_loop/stress_suite.json):
-wind / recover / hover remain easy; **L-turn scale ×1.25 → 0% success**. Card:
+wind / recover / hover remain easy; **L-turn scale ×1.25 → 0% success** in the
+difficulty sweep. Four-way L-turn action ablation
+([`results/lturn_action_ablation.json`](results/lturn_action_ablation.json)):
+at ×1.25, true/zero/shuffle = 20%/0%/10% (mixed; WM not a clean lever). Card:
 [action Wilds](model_cards/aerojepa_action_wilds.md).
 
 ### Representation fine-tune - real aerial footage (`real_finetune_fast`)

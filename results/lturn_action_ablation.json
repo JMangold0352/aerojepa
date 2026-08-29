@@ -1,0 +1,1257 @@
+{
+  "protocol": {
+    "predictor_action_tensor": "LatentPlanner feeds actions_full of shape (N_candidates, num_temporal, 6) into the action-conditioned predictor. Ablations: true=pass-through; zero=zeros_like(actions_full); shuffle=permute across candidate batch (perm fixed for one plan() call), same batch-shuffle idea as eval_action_counterfactual.py. Executed PyFlyt controls still come from planned best_actions via aerojepa_to_pyflyt (+ residual when enabled).",
+    "residual_off": "residual_head=None; heuristic aerojepa_to_pyflyt only.",
+    "stack": "v1 action_conditioned_wilds + action_residual_wilds (except residual_off).",
+    "task": "aggressive_turn",
+    "scales": [
+      1.0,
+      1.25
+    ],
+    "legs_at_scale_1": {
+      "leg1": [
+        0.5,
+        0.0,
+        0.0
+      ],
+      "leg2": [
+        0.5,
+        0.5,
+        0.0
+      ]
+    },
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "planner": "gradient",
+    "latent_smooth": 0.05,
+    "no_seek_retune": true
+  },
+  "by_condition": {
+    "true": {
+      "1": {
+        "success_rate": 1.0,
+        "n": 10,
+        "failure_mode_hist": {
+          "ok": 10
+        },
+        "mean_loop_ms": 772.499028934153,
+        "watchdog_holds_total": 261,
+        "leg1": [
+          0.5,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.5,
+          0.5,
+          0.0
+        ]
+      },
+      "1.25": {
+        "success_rate": 0.2,
+        "n": 10,
+        "failure_mode_hist": {
+          "ok": 2,
+          "altitude_collapse": 3,
+          "missed_turn": 4,
+          "crash": 1
+        },
+        "mean_loop_ms": 759.3021852811588,
+        "watchdog_holds_total": 467,
+        "leg1": [
+          0.625,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.625,
+          0.625,
+          0.0
+        ]
+      }
+    },
+    "zero": {
+      "1": {
+        "success_rate": 1.0,
+        "n": 10,
+        "failure_mode_hist": {
+          "ok": 10
+        },
+        "mean_loop_ms": 318.6870773405405,
+        "watchdog_holds_total": 260,
+        "leg1": [
+          0.5,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.5,
+          0.5,
+          0.0
+        ]
+      },
+      "1.25": {
+        "success_rate": 0.0,
+        "n": 10,
+        "failure_mode_hist": {
+          "crash": 3,
+          "altitude_collapse": 2,
+          "missed_turn": 5
+        },
+        "mean_loop_ms": 260.8555116614276,
+        "watchdog_holds_total": 505,
+        "leg1": [
+          0.625,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.625,
+          0.625,
+          0.0
+        ]
+      }
+    },
+    "shuffle": {
+      "1": {
+        "success_rate": 1.0,
+        "n": 10,
+        "failure_mode_hist": {
+          "ok": 10
+        },
+        "mean_loop_ms": 485.75936353356803,
+        "watchdog_holds_total": 262,
+        "leg1": [
+          0.5,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.5,
+          0.5,
+          0.0
+        ]
+      },
+      "1.25": {
+        "success_rate": 0.1,
+        "n": 10,
+        "failure_mode_hist": {
+          "ok": 1,
+          "altitude_collapse": 4,
+          "missed_turn": 4,
+          "crash": 1
+        },
+        "mean_loop_ms": 298.414929060729,
+        "watchdog_holds_total": 490,
+        "leg1": [
+          0.625,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.625,
+          0.625,
+          0.0
+        ]
+      }
+    },
+    "residual_off": {
+      "1": {
+        "success_rate": 0.9,
+        "n": 10,
+        "failure_mode_hist": {
+          "ok": 9,
+          "crash": 1
+        },
+        "mean_loop_ms": 209.48270751210868,
+        "watchdog_holds_total": 304,
+        "leg1": [
+          0.5,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.5,
+          0.5,
+          0.0
+        ]
+      },
+      "1.25": {
+        "success_rate": 0.5,
+        "n": 10,
+        "failure_mode_hist": {
+          "ok": 5,
+          "altitude_collapse": 3,
+          "missed_turn": 2
+        },
+        "mean_loop_ms": 181.24579460484264,
+        "watchdog_holds_total": 422,
+        "leg1": [
+          0.625,
+          0.0,
+          0.0
+        ],
+        "leg2": [
+          0.625,
+          0.625,
+          0.0
+        ]
+      }
+    }
+  },
+  "verdict": "mixed at \u00d71.25 (true=20%, zero=0%, shuffle=10%): no clean causal win; do not claim a causal controller.",
+  "episodes": [
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 0,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 840.347564518247,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 1,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 745.1372545575672,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 2,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 773.3889512166744,
+      "watchdog_holds": 38,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 3,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 798.9530532653184,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 4,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 768.8320087215218,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 5,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 767.4485104052228,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 6,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 740.2648575921226,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 7,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 765.8692715621522,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 8,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 757.7159332441321,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.0,
+      "seed": 9,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 767.0328842585725,
+      "watchdog_holds": 36,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 0,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 760.7135299662001,
+      "watchdog_holds": 34,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 1,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.13 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 732.1179435274098,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 2,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 736.070997750503,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 3,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 754.5810772938421,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 4,
+      "success": false,
+      "failure_mode": "crash",
+      "failure_detail": "ground contact (z=0.04)",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 754.3239767790767,
+      "watchdog_holds": 50,
+      "survived": false
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 5,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 765.8712901899708,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 6,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.27 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 753.8608277050662,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 7,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 792.1362162456504,
+      "watchdog_holds": 29,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 8,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 773.51559335395,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "true",
+      "scale": 1.25,
+      "seed": 9,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.15 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 769.8303999999189,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 0,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 311.5690114305375,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 1,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 324.0386535079502,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 2,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 315.990513288978,
+      "watchdog_holds": 37,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 3,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 315.7782921664572,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 4,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 328.0772088059726,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 5,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 325.4566433401983,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 6,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 313.7215865087685,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 7,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 319.36417787474466,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 8,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 315.6020148016978,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.0,
+      "seed": 9,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 317.27267168010013,
+      "watchdog_holds": 36,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 0,
+      "success": false,
+      "failure_mode": "crash",
+      "failure_detail": "ground contact (z=0.06)",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 263.973327858945,
+      "watchdog_holds": 50,
+      "survived": false
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 1,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.19 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 257.14784958574455,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 2,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 261.507912283123,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 3,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 262.2100806463277,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 4,
+      "success": false,
+      "failure_mode": "crash",
+      "failure_detail": "ground contact (z=0.05)",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 260.64909342852786,
+      "watchdog_holds": 50,
+      "survived": false
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 5,
+      "success": false,
+      "failure_mode": "crash",
+      "failure_detail": "ground contact (z=0.04)",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 258.1188316209591,
+      "watchdog_holds": 50,
+      "survived": false
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 6,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 254.56975983979646,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 7,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 265.2303552351077,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 8,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 261.7852883550222,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "zero",
+      "scale": 1.25,
+      "seed": 9,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.22 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 263.36261776072206,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 0,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 629.2051094485662,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 1,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 524.0999208136876,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 2,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 463.8414662933353,
+      "watchdog_holds": 38,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 3,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 475.10275875683874,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 4,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 472.27263224955936,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 5,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 467.16270252996446,
+      "watchdog_holds": 24,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 6,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 452.63476924878637,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 7,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 457.3474710086476,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 8,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 452.7267282744611,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.0,
+      "seed": 9,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 463.2000767118331,
+      "watchdog_holds": 36,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 0,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 318.3833862356386,
+      "watchdog_holds": 34,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 1,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.17 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 293.26617871556664,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 2,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 297.751427271578,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 3,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.33 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 296.86845229793107,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 4,
+      "success": false,
+      "failure_mode": "crash",
+      "failure_detail": "ground contact (z=0.04)",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 293.77485082615306,
+      "watchdog_holds": 50,
+      "survived": false
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 5,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.29 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 298.80164811969735,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 6,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.24 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 292.9850677505601,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 7,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 297.74839045043336,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 8,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 296.04546145390486,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "shuffle",
+      "scale": 1.25,
+      "seed": 9,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 298.5244274858269,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 0,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 301.10533889529614,
+      "watchdog_holds": 37,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 1,
+      "success": false,
+      "failure_mode": "crash",
+      "failure_detail": "ground contact (z=0.03)",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 299.02919385420654,
+      "watchdog_holds": 50,
+      "survived": false
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 2,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 211.23485367451966,
+      "watchdog_holds": 35,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 3,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 183.31624074425133,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 4,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 184.221701022419,
+      "watchdog_holds": 35,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 5,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 182.0797453686181,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 6,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 184.81075988794063,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 7,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 184.42649996690346,
+      "watchdog_holds": 23,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 8,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 179.00469414995644,
+      "watchdog_holds": 22,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.0,
+      "seed": 9,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 185.59804755697525,
+      "watchdog_holds": 33,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 0,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 183.00751816609147,
+      "watchdog_holds": 34,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 1,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.34 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 181.7432679227204,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 2,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 183.1070953314124,
+      "watchdog_holds": 35,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 3,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 182.59081269381568,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 4,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 184.247141237018,
+      "watchdog_holds": 35,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 5,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 179.20378690927686,
+      "watchdog_holds": 33,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 6,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.27 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 179.0203833495616,
+      "watchdog_holds": 50,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 7,
+      "success": false,
+      "failure_mode": "missed_turn",
+      "failure_detail": "cleared 1/2 legs - broke at the corner",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 180.15761705377372,
+      "watchdog_holds": 51,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 8,
+      "success": true,
+      "failure_mode": "ok",
+      "failure_detail": "cleared 2/2 legs of the L-turn",
+      "waypoints_reached": 2,
+      "waypoints_total": 2,
+      "mean_loop_ms": 180.65498607225774,
+      "watchdog_holds": 32,
+      "survived": true
+    },
+    {
+      "condition": "residual_off",
+      "scale": 1.25,
+      "seed": 9,
+      "success": false,
+      "failure_mode": "altitude_collapse",
+      "failure_detail": "z=0.18 < 0.35",
+      "waypoints_reached": 1,
+      "waypoints_total": 2,
+      "mean_loop_ms": 178.7253373124986,
+      "watchdog_holds": 50,
+      "survived": true
+    }
+  ],
+  "checkpoint": "checkpoints/action_conditioned_wilds/latest.pt",
+  "residual_checkpoint": "checkpoints/action_residual_wilds/best.pt"
+}

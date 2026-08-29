@@ -92,6 +92,24 @@ python scripts/run_closed_loop_demo.py \
 
 Easy tasks saturate; the hard L-turn does not.
 
+**L-turn action ablation (hardware gate).** Same v1 stack, planner only, **10 seeds**,
+scales ×1.0 and ×1.25. Predictor sees true / zero / shuffled actions
+(same contract as `eval_action_counterfactual.py`); `residual_off` keeps true
+actions but drops `ActionResidualHead`.
+[`scripts/eval_lturn_action_ablation.py`](scripts/eval_lturn_action_ablation.py) →
+[`results/lturn_action_ablation.json`](results/lturn_action_ablation.json):
+
+| Condition | ×1.0 success | ×1.25 success | Notes |
+| --- | ---: | ---: | --- |
+| true | 100% | 20% | residual on |
+| zero | 100% | 0% | zeros to predictor; plan still mapped |
+| shuffle | 100% | 10% | batch-shuffle predictor actions |
+| residual_off | 90% | 50% | heuristic map only |
+
+Verdict (JSON): mixed at ×1.25 (true=20%, zero=0%, shuffle=10%) - no clean causal
+win; do not claim a causal controller. The cliff is not rescued; comparison is
+the headline. Mean `loop_ms` ≫ 25 ms budget on laptop (see Prompt 2 timing).
+
 **Easy-task saturation (3 seeds).** Older table (`latent_smooth=0.05`) -
 [`full_stack_compare_wilds.json`](visualizations/closed_loop/full_stack_compare_wilds.json)
 / bake-off [`bakeoff_v1_v2_summary.json`](visualizations/closed_loop/bakeoff_v1_v2_summary.json):

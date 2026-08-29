@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Literal
 
 import torch
 
@@ -14,6 +14,8 @@ from aerojepa.models.jepa import AeroJEPA
 # checkpoints (latents depend on actions) and plain world models (falls back to
 # kinematic costs). Closed-loop demos live in ``closed_loop.py`` with PyFlyt
 # hooks in ``simulators.py``.
+
+PredictorActionAblation = Literal["true", "zero", "shuffle"]
 
 
 @dataclass
@@ -219,6 +221,7 @@ class LatentPlanner:
         grad_action_limit: float = 0.5,
         latent_refine_steps: int = 8,
         cost_weights: MultiStepCostWeights | None = None,
+        predictor_action_ablation: PredictorActionAblation = "true",
     ) -> None:
         self.model = model.eval()
         self.device = device
@@ -237,6 +240,13 @@ class LatentPlanner:
         self.grad_action_limit = grad_action_limit
         self.latent_refine_steps = latent_refine_steps
         self.cost_weights = cost_weights or MultiStepCostWeights()
+        if predictor_action_ablation not in ("true", "zero", "shuffle"):
+            raise ValueError(
+                f"predictor_action_ablation must be true|zero|shuffle, "
+                f"got {predictor_action_ablation!r}"
+            )
+        self.predictor_action_ablation: PredictorActionAblation = predictor_action_ablation
+        self._ablation_perm: torch.Tensor | None = None
 
     def _target_indices(
         self, n: int, context_frames: int
@@ -279,6 +289,15 @@ class LatentPlanner:
         horizon = num_temporal - context_frames
         ctx, tgt = self._target_indices(n, context_frames)
         acts = actions_full.to(self.device) if self.action_conditioned else None
+        if acts is not None and self.predictor_action_ablation == "zero":
+            # Same contract as eval_action_counterfactual: zero the action tensor
+            # the predictor sees. Planned actions still execute via the map.
+            acts = torch.zeros_like(acts)
+        elif acts is not None and self.predictor_action_ablation == "shuffle":
+            # Permute across the candidate batch (fixed for one plan() call).
+            if self._ablation_perm is None or int(self._ablation_perm.shape[0]) != n:
+                self._ablation_perm = torch.randperm(n, device=acts.device)
+            acts = acts[self._ablation_perm]
         out = self.model.predictor(context_repr, ctx, tgt, acts)
         if isinstance(out, tuple):  # looped predictor with exit gate
             out = out[0]
@@ -395,6 +414,7 @@ class LatentPlanner:
         only used by the gradient planner (momentum-aware braking).
         """
         if self.planning == "gradient":
+            self._ablation_perm = None
             return self.plan_gradient(
                 context_clip,
                 num_candidates=num_candidates,
@@ -404,6 +424,7 @@ class LatentPlanner:
                 seed=seed,
                 init_velocity=init_velocity,
             )
+        self._ablation_perm = None
         return self.plan_shooting(
             context_clip,
             num_candidates=num_candidates,
