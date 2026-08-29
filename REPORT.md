@@ -108,7 +108,17 @@ actions but drops `ActionResidualHead`.
 
 Verdict (JSON): mixed at ×1.25 (true=20%, zero=0%, shuffle=10%) - no clean causal
 win; do not claim a causal controller. The cliff is not rescued; comparison is
-the headline. Mean `loop_ms` ≫ 25 ms budget on laptop (see Prompt 2 timing).
+the headline. Mean `loop_ms` ≫ 25 ms budget on laptop (see closed-loop timing
+logs).
+
+**Planning-forward latency.** Encoder+predictor only (no residual / PyFlyt),
+~3.36M params. TorchScript export: `scripts/export_planning_forward.py`.
+Bench at closed-loop shapes (C=4, H=4, img=64, batch=12):
+[`results/inference_latency.json`](results/inference_latency.json).
+On the measurement host (Apple Silicon), CPU and MPS p95 both exceed the
+25 ms step budget at 40 Hz (CPU by ~10×, MPS modestly). Operational response
+is larger `--replan-every` or shorter `--horizon`, not a bigger world model.
+Details: [`docs/EXPORT.md`](docs/EXPORT.md).
 
 **Easy-task saturation (3 seeds).** Older table (`latent_smooth=0.05`) -
 [`full_stack_compare_wilds.json`](visualizations/closed_loop/full_stack_compare_wilds.json)

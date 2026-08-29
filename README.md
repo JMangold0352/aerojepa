@@ -443,6 +443,8 @@ if URLs are still placeholders it falls back to the untrained smoke model.
 | **Closed-loop waypoint** | same stack, `--task waypoint --goal 0.6 0 0` |
 | **Closed-loop recover** | same stack, `--task recover` |
 | **Demo reel** | `python scripts/stitch_closed_loop_demo.py --include-random` → `docs/gallery/closed_loop_demo_reel.gif` |
+| **Export planning forward** | `python scripts/export_planning_forward.py --checkpoint checkpoints/action_conditioned_wilds/latest.pt` → `exports/planning_forward.ts` ([`docs/EXPORT.md`](docs/EXPORT.md)) |
+| **Inference latency** | `python scripts/bench_inference.py` → [`results/inference_latency.json`](results/inference_latency.json) |
 
 ---
 
@@ -509,6 +511,7 @@ Per-model documentation: architecture, training recipe, metrics, limitations, an
 | Onboard / ROS / motor-command hardware | Out of scope |
 | Personal Tello footage | Optional future capture; not part of the published pipeline |
 | Tello shadow observer | `scripts/run_tello_shadow.py` logs proposed controls only (`*_shadow.jsonl`); never commands |
+| Planning-forward latency | CPU/MPS p95 above 25 ms at batch=12 ([`results/inference_latency.json`](results/inference_latency.json)); raise `--replan-every` or shorten `--horizon` ([`docs/EXPORT.md`](docs/EXPORT.md)) |
 
 Experiment log: [`REPORT.md`](REPORT.md). Prober note: [`research/prober/note.md`](research/prober/note.md).
 
@@ -518,14 +521,14 @@ Experiment log: [`REPORT.md`](REPORT.md). Prober note: [`research/prober/note.md
 
 ```
 aerojepa/
-├── src/aerojepa/       models · data · train · eval · viz · sim
+├── src/aerojepa/       models · data · train · eval · viz · sim · export
 ├── configs/            synthetic · real · finetune · tello
-├── scripts/            train · evaluate · tello_workflow · visualize · planner
+├── scripts/            train · evaluate · tello_workflow · visualize · planner · export
 ├── docs/gallery/       README-embedded figures (tracked)
 ├── app.py · demo/      Gradio demo + latent planner tab
 ├── model_cards/        per-model documentation
 ├── results/            JSON metrics (tracked); checkpoints/ runs/ data/ gitignored
-└── docs/               technical notes · gallery
+└── docs/               technical notes · gallery · export
 ```
 
 ---

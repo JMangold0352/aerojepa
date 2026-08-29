@@ -1,0 +1,50 @@
+{
+  "protocol": {
+    "forward": "encoder+predictor (PlanningForward); residual and sim excluded",
+    "shapes": "closed-loop defaults (context=T//2, horizon=T-context)",
+    "batch": "num_candidates for gradient planner (default 12)",
+    "budget_ms": 25.0,
+    "agent_hz": 40
+  },
+  "checkpoint": "checkpoints/action_conditioned_wilds/latest.pt",
+  "budget_ms": 25.0,
+  "batch": 12,
+  "img_size": 64,
+  "context_frames": 4,
+  "horizon": 4,
+  "param_count": 3358369,
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.11.15",
+    "torch": "2.12.1"
+  },
+  "note": "If p95_ms > budget_ms, increase --replan-every or shorten --horizon in closed-loop / shadow CLIs; do not grow the world-model depth/width.",
+  "devices": {
+    "cpu": {
+      "eager": {
+        "p50_ms": 229.55,
+        "p95_ms": 248.78,
+        "mean_ms": 230.81,
+        "n": 50
+      },
+      "over_budget": true,
+      "torchscript": {
+        "p50_ms": 227.56,
+        "p95_ms": 234.83,
+        "mean_ms": 226.24,
+        "n": 50
+      }
+    },
+    "mps": {
+      "eager": {
+        "p50_ms": 33.6,
+        "p95_ms": 34.51,
+        "mean_ms": 33.66,
+        "n": 50
+      },
+      "over_budget": true
+    }
+  }
+}

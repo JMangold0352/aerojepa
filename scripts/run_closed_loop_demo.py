@@ -77,7 +77,16 @@ def main() -> None:
         default=None,
         help="Candidate action noise scale (default: 0.04 hover / 0.10 waypoint|recover / 0.14 aggressive).",
     )
-    parser.add_argument("--replan-every", type=int, default=4)
+    parser.add_argument(
+        "--replan-every",
+        type=int,
+        default=4,
+        help=(
+            "Replan period in steps. If planning-forward p95 exceeds the 25 ms "
+            "budget (results/inference_latency.json), increase this or shorten "
+            "--horizon rather than growing the world model."
+        ),
+    )
     parser.add_argument("--horizon", type=int, default=None)
     parser.add_argument("--context-frames", type=int, default=None)
     parser.add_argument(

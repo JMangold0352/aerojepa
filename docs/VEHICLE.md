@@ -20,6 +20,12 @@ This is a research hold on a laptop sim, not a dual-CPU flight watchdog.
 This is a research demo, not a flight controller. Tello capture
 scripts remain record-only.
 
+## Planning forward
+
+TorchScript / ONNX of the frozen encoder+predictor used in planning (no
+residual, no sim): [`EXPORT.md`](EXPORT.md). Latency numbers live in
+`results/inference_latency.json`.
+
 ## Tello shadow (observer)
 
 `TelloShadowVehicle` (`src/aerojepa/sim/tello_shadow.py`) implements

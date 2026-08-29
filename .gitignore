@@ -47,6 +47,11 @@ wandb/
 *.pth
 # Exported CPU release copies (local only; upload to Hugging Face, never commit)
 released_weights/_export/
+# Local TorchScript / ONNX of planning forward (see docs/EXPORT.md)
+exports/*.ts
+exports/*.onnx
+exports/*_meta.json
+exports/*.pt
 # Large model weights: keep out of git; host on Hugging Face (see released_weights/).
 
 # AeroProber ablation run logs (regenerated)
